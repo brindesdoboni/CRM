@@ -1,0 +1,92 @@
+:root {
+  --fundo: #f4f5f7;
+  --cartao: #ffffff;
+  --texto: #1d2330;
+  --sutil: #667085;
+  --borda: #dde1e7;
+  --primaria: #1f6feb;
+  --primaria-escura: #1857c0;
+  --sucesso-fundo: #e7f6ec;
+  --sucesso-texto: #1a7f37;
+  --erro-fundo: #fdecec;
+  --erro-texto: #b42318;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+a { color: var(--primaria); }
+h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
+
+.topo {
+  display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+  background: #1d2330; color: #fff; padding: .6rem 1.5rem;
+}
+.topo a { color: #fff; text-decoration: none; }
+.marca { font-weight: 700; }
+.marca span { font-weight: 400; opacity: .7; }
+.menu { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
+.menu a { padding: .35rem .7rem; border-radius: 6px; opacity: .85; }
+.menu a:hover, .menu a.ativo { background: rgba(255,255,255,.12); opacity: 1; }
+.conta { display: flex; align-items: center; gap: .75rem; font-size: .9rem; }
+.conta form { margin: 0; }
+button.link { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+
+.conteudo { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+.conteudo.centro { max-width: 420px; padding-top: 10vh; }
+.cartao {
+  background: var(--cartao); border: 1px solid var(--borda); border-radius: 10px;
+  padding: 1.25rem; margin-bottom: 1rem;
+}
+.cartao.estreito { max-width: 480px; }
+.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+.cabecalho { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.cabecalho h1 { margin: 0; }
+.sutil { color: var(--sutil); }
+.pequeno { font-size: .85rem; }
+.nowrap { white-space: nowrap; }
+
+form label { display: block; margin-bottom: .9rem; font-weight: 500; }
+input[type=text], input[type=email], input[type=password], select, textarea {
+  display: block; width: 100%; margin-top: .3rem; padding: .55rem .7rem;
+  border: 1px solid var(--borda); border-radius: 6px; font: inherit; background: #fff;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--primaria); outline-offset: -1px; }
+fieldset { border: 1px solid var(--borda); border-radius: 8px; margin: 0 0 1rem; padding: .75rem 1rem .25rem; }
+legend { font-weight: 600; padding: 0 .25rem; }
+label.opcao { font-weight: 400; display: flex; gap: .5rem; align-items: baseline; }
+
+.botao {
+  display: inline-block; background: var(--primaria); color: #fff; border: 0; border-radius: 6px;
+  padding: .6rem 1.1rem; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
+}
+.botao:hover { background: var(--primaria-escura); }
+.botao.secundario { background: #fff; color: var(--texto); border: 1px solid var(--borda); }
+.botao.secundario:hover { background: var(--fundo); }
+
+.aviso { padding: .7rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.aviso-sucesso { background: var(--sucesso-fundo); color: var(--sucesso-texto); }
+.aviso-erro { background: var(--erro-fundo); color: var(--erro-texto); }
+
+.tabela { width: 100%; border-collapse: collapse; }
+.tabela th, .tabela td { text-align: left; padding: .55rem .5rem; border-bottom: 1px solid var(--borda); vertical-align: top; }
+.tabela th { font-size: .85rem; color: var(--sutil); font-weight: 600; }
+.tabela tr.inativo td { color: var(--sutil); }
+.selo { display: inline-block; padding: .1rem .55rem; border-radius: 99px; font-size: .8rem; font-weight: 600; background: #eef1f5; }
+.selo-admin { background: #e8eefc; color: #1857c0; }
+.selo-lead { background: #fff4e5; color: #9a5b00; }
+.selo-financeiro { background: #e7f6ec; color: #1a7f37; }
+.selo-producao { background: #f3e8fd; color: #7a2cbf; }
+
+.login h1 { margin-bottom: .25rem; }
+.login .botao { width: 100%; }
+
+@media (max-width: 700px) {
+  .topo { padding: .6rem 1rem; gap: .5rem; }
+  .conteudo { padding: 1rem; }
+  .tabela { display: block; overflow-x: auto; }
+}

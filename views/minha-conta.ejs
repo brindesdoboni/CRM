@@ -1,0 +1,15 @@
+<%- include('partials/topo') %>
+<h1>Minha conta</h1>
+<div class="cartao estreito">
+  <p><strong><%= currentUser.name %></strong><br><span class="sutil"><%= currentUser.email %> · <%= ROLE_LABELS[currentUser.role] %></span></p>
+  <h2>Trocar senha</h2>
+  <% if (error) { %><div class="aviso aviso-erro"><%= error %></div><% } %>
+  <form method="post" action="/minha-conta/senha">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>Senha atual <input type="password" name="senha_atual" required autocomplete="current-password"></label>
+    <label>Nova senha (mínimo 8 caracteres) <input type="password" name="nova_senha" required minlength="8" autocomplete="new-password"></label>
+    <label>Repita a nova senha <input type="password" name="confirmacao" required minlength="8" autocomplete="new-password"></label>
+    <button type="submit" class="botao">Salvar nova senha</button>
+  </form>
+</div>
+<%- include('partials/rodape') %>

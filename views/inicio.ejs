@@ -1,0 +1,29 @@
+<%- include('partials/topo') %>
+<h1>Início</h1>
+<div class="grade">
+  <div class="cartao">
+    <h2>Tarefas do dia</h2>
+    <p class="sutil">Os contadores por etapa, tarefas e alertas aparecem aqui a partir das próximas etapas.</p>
+  </div>
+  <div class="cartao">
+    <h2>Atalhos</h2>
+    <p><a href="/usuarios">Gerenciar usuários e perfis</a></p>
+    <p><a href="/minha-conta">Trocar minha senha</a></p>
+  </div>
+</div>
+<div class="cartao">
+  <h2>Atividade recente</h2>
+  <% if (recentes.length === 0) { %>
+    <p class="sutil">Nada por enquanto.</p>
+  <% } else { %>
+  <table class="tabela">
+    <thead><tr><th>Quando</th><th>Quem</th><th>O quê</th></tr></thead>
+    <tbody>
+    <% recentes.forEach(function (e) { %>
+      <tr><td class="nowrap"><%= formatDateTime(e.created_at) %></td><td><%= e.author || 'Sistema' %></td><td><%= e.description %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('partials/rodape') %>

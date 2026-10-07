@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · CRM DoBoni</title>
+  <link rel="stylesheet" href="/static/estilo.css">
+</head>
+<body>
+<% if (currentUser) { %>
+<header class="topo">
+  <a class="marca" href="/">Brindes DoBoni <span>CRM</span></a>
+  <nav class="menu">
+    <% if (currentUser.role === 'admin') { %>
+      <a href="/inicio" class="<%= path === '/inicio' ? 'ativo' : '' %>">Início</a>
+      <a href="/leads" class="<%= path.startsWith('/leads') ? 'ativo' : '' %>">Leads</a>
+      <a href="/financeiro" class="<%= path.startsWith('/financeiro') ? 'ativo' : '' %>">Financeiro</a>
+      <a href="/producao" class="<%= path.startsWith('/producao') ? 'ativo' : '' %>">Produção</a>
+      <a href="/usuarios" class="<%= path.startsWith('/usuarios') ? 'ativo' : '' %>">Usuários</a>
+    <% } else if (currentUser.role === 'lead') { %>
+      <a href="/leads" class="ativo">Leads</a>
+    <% } else if (currentUser.role === 'financeiro') { %>
+      <a href="/financeiro" class="ativo">Financeiro</a>
+    <% } else if (currentUser.role === 'producao') { %>
+      <a href="/producao" class="ativo">Produção</a>
+    <% } %>
+  </nav>
+  <div class="conta">
+    <a href="/minha-conta" title="Minha conta"><%= currentUser.name %> · <%= ROLE_LABELS[currentUser.role] %></a>
+    <form method="post" action="/sair">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="link">Sair</button>
+    </form>
+  </div>
+</header>
+<% } %>
+<main class="<%= currentUser ? 'conteudo' : 'conteudo centro' %>">
+<% flash.forEach(function (m) { %>
+  <div class="aviso aviso-<%= m.type %>"><%= m.message %></div>
+<% }) %>
