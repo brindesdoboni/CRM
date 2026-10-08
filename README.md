@@ -5,7 +5,7 @@ As regras completas do projeto estão em [CLAUDE.md](CLAUDE.md).
 
 ## Situação
 
-- [x] **Etapa 1** — estrutura, banco, login e perfis (Admin, Lead, Financeiro, Produção), histórico de eventos
+- [x] **Etapa 1** — estrutura, banco, login e perfis (Admin, Lead, Financeiro, Produção), permissões por pessoa (o Admin escolhe o que cada um vê), histórico de eventos
 - [ ] Etapa 2 — cadastros/configurações e clientes
 - [ ] Etapa 3 — novo lead, funil e prospecção
 - [ ] Etapa 4 — orçamento + página pública

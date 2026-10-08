@@ -3,12 +3,15 @@ import { pool } from '../db/pool.js';
 import { recordEvent } from '../lib/events.js';
 import { ROLES, ROLE_DESCRIPTIONS, ROLE_LABELS, isRole, type Role } from '../lib/roles.js';
 import {
+  PERMISSIONS, ROLE_DEFAULT_PERMISSIONS, isCustomized, isPermission, permissionLabel, permissionsOf, type Permission,
+} from '../lib/permissions.js';
+import {
   countActiveAdmins, createUser, emailInUse, findUserById, listUsers, normalizeEmail, setPassword, validatePassword,
 } from '../lib/users.js';
-import { flash, requireRole } from '../middleware.js';
+import { flash, requireAdmin } from '../middleware.js';
 
 export const usuariosRouter = Router();
-usuariosRouter.use('/usuarios', requireRole('admin'));
+usuariosRouter.use('/usuarios', requireAdmin);
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -17,15 +20,19 @@ interface UserForm {
   email: string;
   role: string;
   active: boolean;
+  permissions: Permission[];
   password?: string;
 }
 
 function readForm(req: Request): UserForm {
+  const raw = req.body.permissoes;
+  const list = (Array.isArray(raw) ? raw : raw === undefined ? [] : [raw]).filter(isPermission);
   return {
     name: String(req.body.nome ?? '').trim(),
     email: normalizeEmail(String(req.body.email ?? '')),
     role: String(req.body.perfil ?? ''),
     active: req.body.ativo === 'on' || req.body.ativo === 'true',
+    permissions: PERMISSIONS.map((p) => p.key).filter((k) => list.includes(k)),
     password: req.body.senha === undefined ? undefined : String(req.body.senha),
   };
 }
@@ -39,14 +46,27 @@ async function validateForm(form: UserForm, exceptId?: number): Promise<string |
   return null;
 }
 
-const formLocals = { ROLES, ROLE_DESCRIPTIONS };
+/** O Admin sempre vê tudo; para os outros perfis guardamos exatamente o que foi marcado. */
+function permissionsToStore(form: UserForm): string[] | null {
+  return form.role === 'admin' ? null : form.permissions;
+}
+
+function describePermissions(list: readonly string[]): string {
+  return list.length ? list.map(permissionLabel).join(', ') : 'nada';
+}
+
+const formLocals = { ROLES, ROLE_DESCRIPTIONS, PERMISSIONS, ROLE_DEFAULT_PERMISSIONS };
 
 usuariosRouter.get('/usuarios', async (_req, res) => {
-  res.render('usuarios/lista', { title: 'Usuários', users: await listUsers() });
+  const users = (await listUsers()).map((u) => ({ ...u, perms: permissionsOf(u), customized: isCustomized(u) }));
+  res.render('usuarios/lista', { title: 'Usuários e permissões', users, permissionLabel });
 });
 
 usuariosRouter.get('/usuarios/novo', (_req, res) => {
-  res.render('usuarios/form', { ...formLocals, title: 'Novo usuário', editing: null, form: { name: '', email: '', role: 'lead', active: true }, error: null, history: [] });
+  res.render('usuarios/form', {
+    ...formLocals, title: 'Novo usuário', editing: null,
+    form: { name: '', email: '', role: 'lead', active: true, permissions: ROLE_DEFAULT_PERMISSIONS.lead }, error: null, history: [],
+  });
 });
 
 usuariosRouter.post('/usuarios', async (req, res) => {
@@ -57,9 +77,12 @@ usuariosRouter.post('/usuarios', async (req, res) => {
     return res.status(400).render('usuarios/form', { ...formLocals, title: 'Novo usuário', editing: null, form, error, history: [] });
   }
   const user = await createUser({ name: form.name, email: form.email, password: form.password, role: form.role as Role });
+  await pool.query('UPDATE users SET permissions = $2 WHERE id = $1', [user.id, permissionsToStore(form)]);
+  const perms = permissionsOf({ role: user.role, permissions: permissionsToStore(form) });
   await recordEvent({
     userId: req.user!.id, entityType: 'user', entityId: user.id, action: 'criado',
-    description: `Criou o usuário ${user.name} (${ROLE_LABELS[user.role]})`, data: { email: user.email, role: user.role }, ip: req.ip,
+    description: `Criou o usuário ${user.name} (${ROLE_LABELS[user.role]}) com acesso a: ${describePermissions(perms)}`,
+    data: { email: user.email, role: user.role, permissions: perms }, ip: req.ip,
   });
   flash(req, 'sucesso', `Usuário ${user.name} criado. Passe o e-mail e a senha para a pessoa.`);
   res.redirect('/usuarios');
@@ -81,7 +104,8 @@ usuariosRouter.get('/usuarios/:id', async (req, res) => {
   if (!user) return res.status(404).render('erro', { title: 'Não encontrado', message: 'Usuário não encontrado.', backUrl: '/usuarios' });
   res.render('usuarios/form', {
     ...formLocals, title: `Editar ${user.name}`, editing: user,
-    form: { name: user.name, email: user.email, role: user.role, active: user.active }, error: null, history: await loadHistory(user.id),
+    form: { name: user.name, email: user.email, role: user.role, active: user.active, permissions: permissionsOf(user) },
+    error: null, history: await loadHistory(user.id),
   });
 });
 
@@ -100,19 +124,31 @@ usuariosRouter.post('/usuarios/:id', async (req, res) => {
       ...formLocals, title: `Editar ${user.name}`, editing: user, form, error, history: await loadHistory(user.id),
     });
   }
-  await pool.query('UPDATE users SET name = $2, email = $3, role = $4, active = $5, updated_at = now() WHERE id = $1', [
-    user.id, form.name, form.email, form.role, form.active,
-  ]);
+  const stored = permissionsToStore(form);
+  await pool.query(
+    'UPDATE users SET name = $2, email = $3, role = $4, active = $5, permissions = $6, updated_at = now() WHERE id = $1',
+    [user.id, form.name, form.email, form.role, form.active, stored],
+  );
+  const before = permissionsOf(user);
+  const after = permissionsOf({ role: form.role as Role, permissions: stored });
   const changes: string[] = [];
   if (user.name !== form.name) changes.push(`nome: ${user.name} → ${form.name}`);
   if (user.email !== form.email) changes.push(`e-mail: ${user.email} → ${form.email}`);
   if (user.role !== form.role) changes.push(`perfil: ${ROLE_LABELS[user.role]} → ${ROLE_LABELS[form.role as Role]}`);
   if (user.active !== form.active) changes.push(form.active ? 'reativado' : 'desativado');
+  const added = after.filter((p) => !before.includes(p));
+  const removed = before.filter((p) => !after.includes(p));
+  if (added.length) changes.push(`liberou: ${describePermissions(added)}`);
+  if (removed.length) changes.push(`bloqueou: ${describePermissions(removed)}`);
   if (changes.length) {
     await recordEvent({
       userId: req.user!.id, entityType: 'user', entityId: user.id, action: 'alterado',
       description: `Alterou o usuário (${changes.join('; ')})`,
-      data: { antes: { name: user.name, email: user.email, role: user.role, active: user.active }, depois: form }, ip: req.ip,
+      data: {
+        antes: { name: user.name, email: user.email, role: user.role, active: user.active, permissions: before },
+        depois: { name: form.name, email: form.email, role: form.role, active: form.active, permissions: after },
+      },
+      ip: req.ip,
     });
   }
   flash(req, 'sucesso', 'Usuário salvo.');

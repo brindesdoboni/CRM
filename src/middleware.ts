@@ -1,7 +1,8 @@
 import crypto from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
 import { findUserById, type User } from './lib/users.js';
-import { ROLE_HOME, ROLE_LABELS, type Role } from './lib/roles.js';
+import { ROLE_LABELS } from './lib/roles.js';
+import { PERMISSIONS, can, homePath, type Permission } from './lib/permissions.js';
 import { formatDate, formatDateTime, formatMoney } from './lib/format.js';
 
 declare global {
@@ -29,6 +30,7 @@ export async function loadUser(req: Request, res: Response, next: NextFunction):
   }
   req.session.csrfToken ??= crypto.randomBytes(32).toString('hex');
   res.locals.currentUser = req.user ?? null;
+  res.locals.menu = req.user ? PERMISSIONS.filter((p) => can(req.user!, p.key)) : [];
   res.locals.csrfToken = req.session.csrfToken;
   res.locals.flash = req.session.flash ?? [];
   delete req.session.flash;
@@ -60,21 +62,32 @@ export function requireLogin(req: Request, res: Response, next: NextFunction): v
   next();
 }
 
-/** Libera a rota só para os perfis indicados. O Admin sempre tem acesso. */
-export function requireRole(...roles: Role[]) {
+function deny(req: Request, res: Response): void {
+  res.status(403).render('erro', {
+    title: 'Sem acesso',
+    message: 'Você não tem permissão para ver esta tela. Se precisar, peça ao Lucas para liberar.',
+    backUrl: homePath(req.user!),
+  });
+}
+
+/** Libera a rota só para quem tem a permissão marcada. O Admin sempre tem acesso. */
+export function requirePermission(permission: Permission) {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.redirect(`/login?voltar=${encodeURIComponent(req.originalUrl)}`);
       return;
     }
-    if (req.user.role !== 'admin' && !roles.includes(req.user.role)) {
-      res.status(403).render('erro', {
-        title: 'Sem acesso',
-        message: 'Seu perfil não tem acesso a esta tela.',
-        backUrl: ROLE_HOME[req.user.role],
-      });
-      return;
-    }
+    if (!can(req.user, permission)) return deny(req, res);
     next();
   };
+}
+
+/** Só o Admin (ex.: tela de usuários e permissões). */
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user) {
+    res.redirect(`/login?voltar=${encodeURIComponent(req.originalUrl)}`);
+    return;
+  }
+  if (req.user.role !== 'admin') return deny(req, res);
+  next();
 }

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { authenticate, checkPassword, setPassword, validatePassword } from '../lib/users.js';
 import { recordEvent } from '../lib/events.js';
-import { ROLE_HOME } from '../lib/roles.js';
+import { homePath } from '../lib/permissions.js';
 import { pool } from '../db/pool.js';
 import { flash, requireLogin } from '../middleware.js';
 
@@ -31,7 +31,7 @@ function safeReturnPath(value: unknown): string {
 }
 
 authRouter.get('/login', (req, res) => {
-  if (req.user) return res.redirect(ROLE_HOME[req.user.role]);
+  if (req.user) return res.redirect(homePath(req.user));
   res.render('login', { title: 'Entrar', email: '', voltar: safeReturnPath(req.query.voltar), error: null });
 });
 
@@ -50,7 +50,7 @@ authRouter.post('/login', loginLimiter, async (req, res) => {
   await pool.query('UPDATE users SET last_login_at = now() WHERE id = $1', [user.id]);
   await recordEvent({ userId: user.id, entityType: 'user', entityId: user.id, action: 'login', description: 'Entrou no sistema', ip: req.ip });
   await new Promise<void>((resolve, reject) => req.session.save((err) => (err ? reject(err) : resolve())));
-  res.redirect(voltar || ROLE_HOME[user.role]);
+  res.redirect(voltar || homePath(user));
 });
 
 authRouter.post('/sair', async (req, res) => {

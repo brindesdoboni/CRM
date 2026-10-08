@@ -8,13 +8,14 @@ export interface User {
   name: string;
   email: string;
   role: Role;
+  permissions: string[] | null;
   active: boolean;
   last_login_at: Date | null;
   created_at: Date;
 }
 
 let dummyHash: string | undefined;
-const PUBLIC_COLUMNS = 'id, name, email, role, active, last_login_at, created_at';
+const PUBLIC_COLUMNS = 'id, name, email, role, permissions, active, last_login_at, created_at';
 export const MIN_PASSWORD_LENGTH = 8;
 
 export function hashPassword(password: string): Promise<string> {
