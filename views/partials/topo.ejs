@@ -5,24 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %> · CRM DoBoni</title>
   <link rel="stylesheet" href="/static/estilo.css">
+  <script src="/static/app.js" defer></script>
 </head>
 <body>
 <% if (currentUser) { %>
 <header class="topo">
   <a class="marca" href="/">Brindes DoBoni <span>CRM</span></a>
   <nav class="menu">
+    <% menu.forEach(function (m) { %>
+      <a href="<%= m.path %>" class="<%= path.startsWith(m.path) ? 'ativo' : '' %>"><%= m.label %></a>
+    <% }) %>
     <% if (currentUser.role === 'admin') { %>
-      <a href="/inicio" class="<%= path === '/inicio' ? 'ativo' : '' %>">Início</a>
-      <a href="/leads" class="<%= path.startsWith('/leads') ? 'ativo' : '' %>">Leads</a>
-      <a href="/financeiro" class="<%= path.startsWith('/financeiro') ? 'ativo' : '' %>">Financeiro</a>
-      <a href="/producao" class="<%= path.startsWith('/producao') ? 'ativo' : '' %>">Produção</a>
-      <a href="/usuarios" class="<%= path.startsWith('/usuarios') ? 'ativo' : '' %>">Usuários</a>
-    <% } else if (currentUser.role === 'lead') { %>
-      <a href="/leads" class="ativo">Leads</a>
-    <% } else if (currentUser.role === 'financeiro') { %>
-      <a href="/financeiro" class="ativo">Financeiro</a>
-    <% } else if (currentUser.role === 'producao') { %>
-      <a href="/producao" class="ativo">Produção</a>
+      <a href="/usuarios" class="<%= path.startsWith('/usuarios') ? 'ativo' : '' %>">Usuários e permissões</a>
     <% } %>
   </nav>
   <div class="conta">

@@ -1,17 +1,18 @@
 <%- include('../partials/topo') %>
 <div class="cabecalho">
-  <h1>Usuários</h1>
+  <h1>Usuários e permissões</h1>
   <a class="botao" href="/usuarios/novo">+ Novo usuário</a>
 </div>
 <div class="cartao">
   <table class="tabela">
-    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead>
+    <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Pode ver</th><th>Situação</th><th>Último acesso</th><th></th></tr></thead>
     <tbody>
     <% users.forEach(function (u) { %>
       <tr class="<%= u.active ? '' : 'inativo' %>">
         <td><%= u.name %></td>
         <td><%= u.email %></td>
-        <td><span class="selo selo-<%= u.role %>"><%= ROLE_LABELS[u.role] %></span></td>
+        <td><span class="selo selo-<%= u.role %>"><%= ROLE_LABELS[u.role] %></span><% if (u.customized) { %> <span class="selo">personalizado</span><% } %></td>
+        <td class="pequeno"><%= u.role === 'admin' ? 'Tudo' : (u.perms.length ? u.perms.map(permissionLabel).join(', ') : 'Nada') %></td>
         <td><%= u.active ? 'Ativo' : 'Desativado' %></td>
         <td class="nowrap"><%= u.last_login_at ? formatDateTime(u.last_login_at) : '—' %></td>
         <td><a href="/usuarios/<%= u.id %>">Editar</a></td>

@@ -75,7 +75,7 @@ describe('perfis', () => {
 
   it('Admin acessa tudo', async () => {
     const { agent } = await login('lucas@exemplo.com', 'senha-admin-1');
-    for (const url of ['/inicio', '/usuarios', '/leads', '/financeiro', '/producao']) {
+    for (const url of ['/inicio', '/usuarios', '/leads', '/funil', '/clientes', '/orcamentos', '/pedidos', '/financeiro', '/producao', '/configuracoes']) {
       expect((await agent.get(url)).status, url).toBe(200);
     }
   });
@@ -85,7 +85,7 @@ describe('usuários', () => {
   it('Admin cria usuário, e o novo usuário consegue entrar', async () => {
     const { agent, csrf } = await login('lucas@exemplo.com', 'senha-admin-1');
     const res = await agent.post('/usuarios').type('form').send({
-      _csrf: csrf, nome: 'Financeiro', email: 'fin@exemplo.com', senha: 'senha-fin-1', perfil: 'financeiro', ativo: 'on',
+      _csrf: csrf, nome: 'Financeiro', email: 'fin@exemplo.com', senha: 'senha-fin-1', perfil: 'financeiro', ativo: 'on', permissoes: 'financeiro',
     });
     expect(res.status).toBe(302);
     expect((await login('fin@exemplo.com', 'senha-fin-1')).res.headers.location).toBe('/financeiro');
@@ -120,6 +120,53 @@ describe('usuários', () => {
   it('senha fica guardada com hash, nunca em texto', async () => {
     const { rows } = await pool.query(`SELECT password_hash FROM users WHERE email = 'lucas@exemplo.com'`);
     expect(rows[0].password_hash).toMatch(/^\$2[aby]\$12\$/);
+  });
+});
+
+describe('permissões por pessoa', () => {
+  it('Admin escolhe o que cada pessoa vê, e pode mudar depois', async () => {
+    const { agent, csrf } = await login('lucas@exemplo.com', 'senha-admin-1');
+    await agent.post('/usuarios').type('form').send({
+      _csrf: csrf, nome: 'Ajudante', email: 'ajuda@exemplo.com', senha: 'senha-ajuda-1', perfil: 'producao', ativo: 'on',
+      permissoes: ['producao', 'clientes'],
+    });
+    let ajudante = await login('ajuda@exemplo.com', 'senha-ajuda-1');
+    expect(ajudante.res.headers.location).toBe('/clientes');
+    expect((await ajudante.agent.get('/producao')).status).toBe(200);
+    expect((await ajudante.agent.get('/financeiro')).status).toBe(403);
+    expect((await ajudante.agent.get('/usuarios')).status).toBe(403);
+    const menu = (await ajudante.agent.get('/clientes')).text;
+    expect(menu).toContain('href="/producao"');
+    expect(menu).not.toContain('href="/financeiro"');
+
+    const { rows } = await pool.query(`SELECT id FROM users WHERE email = 'ajuda@exemplo.com'`);
+    await agent.post(`/usuarios/${rows[0].id}`).type('form').send({
+      _csrf: csrf, nome: 'Ajudante', email: 'ajuda@exemplo.com', perfil: 'producao', ativo: 'on', permissoes: 'financeiro',
+    });
+    expect((await ajudante.agent.get('/producao')).status).toBe(403);
+    expect((await ajudante.agent.get('/financeiro')).status).toBe(200);
+
+    const { rows: ev } = await pool.query(`SELECT description FROM events WHERE entity_id = $1 AND action = 'alterado'`, [String(rows[0].id)]);
+    expect(ev[0].description).toContain('liberou: Financeiro');
+    expect(ev[0].description).toContain('bloqueou: Clientes, Produção');
+
+    // Sem nenhuma permissão: só consegue ver a própria conta
+    await agent.post(`/usuarios/${rows[0].id}`).type('form').send({
+      _csrf: csrf, nome: 'Ajudante', email: 'ajuda@exemplo.com', perfil: 'producao', ativo: 'on',
+    });
+    ajudante = await login('ajuda@exemplo.com', 'senha-ajuda-1');
+    expect(ajudante.res.headers.location).toBe('/minha-conta');
+  });
+
+  it('quem não é Admin não consegue mexer em permissões', async () => {
+    const { agent, csrf } = await login('dani@exemplo.com', 'senha-lead-1');
+    const { rows } = await pool.query(`SELECT id FROM users WHERE email = 'dani@exemplo.com'`);
+    const res = await agent.post(`/usuarios/${rows[0].id}`).type('form').send({
+      _csrf: csrf, nome: 'Danielson', email: 'dani@exemplo.com', perfil: 'admin', ativo: 'on',
+    });
+    expect(res.status).toBe(403);
+    const { rows: depois } = await pool.query(`SELECT role FROM users WHERE id = $1`, [rows[0].id]);
+    expect(depois[0].role).toBe('lead');
   });
 });
 

@@ -15,8 +15,20 @@
         <legend>Perfil</legend>
         <% ROLES.forEach(function (r) { %>
           <label class="opcao">
-            <input type="radio" name="perfil" value="<%= r %>" <%= form.role === r ? 'checked' : '' %> required>
+            <input type="radio" name="perfil" value="<%= r %>" <%= form.role === r ? 'checked' : '' %> required
+                   data-padrao="<%= ROLE_DEFAULT_PERMISSIONS[r].join(',') %>">
             <strong><%= ROLE_LABELS[r] %></strong> <span class="sutil">— <%= ROLE_DESCRIPTIONS[r] %></span>
+          </label>
+        <% }) %>
+      </fieldset>
+      <fieldset id="permissoes">
+        <legend>O que esta pessoa pode ver</legend>
+        <p class="sutil pequeno" data-aviso-admin <%= form.role === 'admin' ? '' : 'hidden' %>>O Admin vê tudo, inclusive "Usuários e permissões".</p>
+        <p class="sutil pequeno" data-aviso-outros <%= form.role === 'admin' ? 'hidden' : '' %>>Marque só o que esta pessoa precisa. Ao trocar o perfil, as caixas voltam ao padrão dele; depois você pode ajustar.</p>
+        <% PERMISSIONS.forEach(function (p) { var marcado = form.role === 'admin' || form.permissions.indexOf(p.key) !== -1; %>
+          <label class="opcao">
+            <input type="checkbox" name="permissoes" value="<%= p.key %>" <%= marcado ? 'checked' : '' %> <%= form.role === 'admin' ? 'disabled' : '' %>>
+            <span><strong><%= p.label %></strong> <span class="sutil">— <%= p.description %></span></span>
           </label>
         <% }) %>
       </fieldset>

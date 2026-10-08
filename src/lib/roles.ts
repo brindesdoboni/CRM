@@ -9,18 +9,10 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  admin: 'Acesso a tudo',
-  lead: 'Só a tela "Novo lead" e a lista dos leads que criou',
-  financeiro: 'Pix solicitados e comprovantes',
-  producao: 'Painel de produção',
-};
-
-/** Tela inicial de cada perfil depois do login. */
-export const ROLE_HOME: Record<Role, string> = {
-  admin: '/inicio',
-  lead: '/leads',
-  financeiro: '/financeiro',
-  producao: '/producao',
+  admin: 'Vê tudo e controla usuários e permissões',
+  lead: 'Padrão: só "Novo lead" e os leads que criou',
+  financeiro: 'Padrão: Pix solicitados e comprovantes',
+  producao: 'Padrão: painel de produção',
 };
 
 export function isRole(value: unknown): value is Role {

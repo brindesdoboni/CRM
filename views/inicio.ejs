@@ -7,7 +7,7 @@
   </div>
   <div class="cartao">
     <h2>Atalhos</h2>
-    <p><a href="/usuarios">Gerenciar usuários e perfis</a></p>
+    <% if (currentUser.role === 'admin') { %><p><a href="/usuarios">Usuários e permissões (quem vê o quê)</a></p><% } %>
     <p><a href="/minha-conta">Trocar minha senha</a></p>
   </div>
 </div>
