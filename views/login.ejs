@@ -1,0 +1,19 @@
+<%- include('partials/topo') %>
+<div class="cartao login">
+  <h1>Brindes DoBoni</h1>
+  <p class="sutil">Entre com seu e-mail e senha.</p>
+  <% if (error) { %><div class="aviso aviso-erro"><%= error %></div><% } %>
+  <form method="post" action="/login">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="voltar" value="<%= voltar %>">
+    <label>E-mail
+      <input type="email" name="email" value="<%= email %>" required autofocus autocomplete="username">
+    </label>
+    <label>Senha
+      <input type="password" name="senha" required autocomplete="current-password">
+    </label>
+    <button type="submit" class="botao">Entrar</button>
+  </form>
+  <p class="sutil pequeno">Esqueceu a senha? Peça ao Lucas para redefinir.</p>
+</div>
+<%- include('partials/rodape') %>

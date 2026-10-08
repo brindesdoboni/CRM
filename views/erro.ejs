@@ -1,0 +1,7 @@
+<%- include('partials/topo') %>
+<div class="cartao">
+  <h1><%= title %></h1>
+  <p><%= message %></p>
+  <p><a class="botao" href="<%= typeof backUrl !== 'undefined' && backUrl ? backUrl : '/' %>">Voltar</a></p>
+</div>
+<%- include('partials/rodape') %>
