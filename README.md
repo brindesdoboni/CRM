@@ -10,6 +10,8 @@ As regras completas do projeto estão em [CLAUDE.md](CLAUDE.md).
       tela "Novo lead" do Danielson (com print e aviso de telefone repetido), vendas para a produção,
       painel da Jô (OPs por prazo, arte, nomes, checklist, peso/medidas, CSV do LightBurn, "Tenho um problema"),
       sininho de avisos, origens editáveis
+- [x] **Semana 1, D3** — entrada automática de leads (`POST /api/leads`) para o formulário do site e o ManyChat,
+      com chave por integração (Configurações → Integrações), origem obrigatória e anti-duplicidade por telefone
 - [ ] Etapa 2 — cadastros/configurações e clientes
 - [ ] Etapa 3 — novo lead, funil e prospecção
 - [ ] Etapa 4 — orçamento + página pública
@@ -42,3 +44,11 @@ npm test                  # usa o banco postgres://crm:crm@localhost:5432/crm_te
 ```
 
 As mudanças no banco ficam em `migrations/*.sql` e são aplicadas sozinhas quando o sistema inicia.
+
+## Entrada automática de leads (site, ManyChat)
+
+Em **Cadastros e configurações → Integrações**, crie uma integração e copie o endereço com a chave.
+A ferramenta manda `POST /api/leads` (JSON ou formulário) com a chave no cabeçalho `X-CRM-Token`
+(ou `Authorization: Bearer …`, ou `?token=` no endereço). Campos: `telefone` (obrigatório), `nome`, `email`,
+`produto`, `quantidade`, `mensagem`; outros campos vão para as observações. Se o cliente já tem um lead em
+aberto nos últimos 30 dias, o novo contato entra nele em vez de criar outro.

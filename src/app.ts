@@ -16,6 +16,7 @@ import { vendasRouter } from './routes/vendas.js';
 import { producaoRouter } from './routes/producao.js';
 import { geralRouter } from './routes/geral.js';
 import { configuracoesRouter } from './routes/configuracoes.js';
+import { apiRouter } from './routes/api.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 
@@ -39,6 +40,9 @@ export function createApp() {
   app.use('/static', express.static(path.join(root, 'public'), { maxAge: config.isProduction ? '1d' : 0 }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(express.json({ limit: '1mb' }));
+
+  // Entrada automática de leads: antes da sessão (não usa login nem cookie)
+  app.use(apiRouter);
 
   const PgStore = connectPgSimple(session);
   app.use(session({

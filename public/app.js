@@ -76,3 +76,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var imprimir = document.querySelector('[data-imprimir]');
   if (imprimir) imprimir.addEventListener('click', function () { window.print(); });
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Pede confirmação antes de ações que não dá para desfazer
+  document.querySelectorAll('form[data-confirmar]').forEach(function (f) {
+    f.addEventListener('submit', function (e) { if (!window.confirm(f.dataset.confirmar)) e.preventDefault(); });
+  });
+  // Campos de copiar: seleciona tudo ao clicar
+  document.querySelectorAll('input[data-copiar]').forEach(function (i) {
+    i.addEventListener('focus', function () { i.select(); });
+  });
+});

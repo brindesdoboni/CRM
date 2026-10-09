@@ -11,10 +11,12 @@
   <div class="cartao">
     <dl class="dados">
       <dt>Telefone</dt><dd><%= formatPhone(lead.phone) %></dd>
+      <% if (lead.email) { %><dt>E-mail</dt><dd><%= lead.email %></dd><% } %>
       <dt>Origem</dt><dd><%= lead.origin %> <span class="sutil pequeno">(<%= CHANNEL_LABELS[lead.channel] || lead.channel %>)</span></dd>
       <dt>Produto</dt><dd><%= lead.product || '—' %></dd>
       <dt>Quantidade</dt><dd><%= lead.quantity || '—' %></dd>
       <dt>Observações</dt><dd class="quebra"><%= lead.notes || '—' %></dd>
+      <% if (lead.last_contact_at && new Date(lead.last_contact_at) - new Date(lead.created_at) > 60000) { %><dt>Último contato</dt><dd><%= formatDateTime(lead.last_contact_at) %></dd><% } %>
       <dt>Cadastrado</dt><dd><%= formatDateTime(lead.created_at) %><%= lead.creator ? ' por ' + lead.creator : '' %></dd>
       <dt>Atendimento</dt><dd><%= lead.assignee || 'Ninguém assumiu ainda' %></dd>
       <% if (lead.stage === 'perdido' && lead.lost_reason) { %><dt>Motivo da perda</dt><dd><%= lead.lost_reason %></dd><% } %>

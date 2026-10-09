@@ -50,6 +50,8 @@ export async function loadUser(req: Request, res: Response, next: NextFunction):
 /** Protege formulários contra envio a partir de outros sites. */
 export function verifyCsrf(req: Request, res: Response, next: NextFunction): void {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+  // Entrada automática (site, ManyChat): não usa sessão; é protegida pela chave da integração
+  if (req.path.startsWith('/api/')) return next();
   const sent = (req.body?._csrf as string | undefined) ?? req.get('x-csrf-token');
   const expected = req.session.csrfToken;
   if (!sent || !expected || sent.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sent), Buffer.from(expected))) {
