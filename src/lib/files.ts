@@ -5,7 +5,7 @@ import { pool } from '../db/pool.js';
 import { can } from './permissions.js';
 import type { User } from './users.js';
 
-export type FileKind = 'print_lead' | 'arte_venda';
+export type FileKind = 'print_lead' | 'arte_venda' | 'audio_sdr';
 export const MAX_FILE_MB = 8;
 
 /** Recebe um arquivo do formulário na memória (depois vai para o banco). */
@@ -21,6 +21,11 @@ export function detectMime(buf: Buffer): string | null {
   if (buf.length >= 12 && buf.subarray(0, 4).toString('latin1') === 'RIFF' && buf.subarray(8, 12).toString('latin1') === 'WEBP') return 'image/webp';
   if (buf.length >= 6 && /^GIF8[79]a$/.test(buf.subarray(0, 6).toString('latin1'))) return 'image/gif';
   if (buf.length >= 5 && buf.subarray(0, 5).toString('latin1') === '%PDF-') return 'application/pdf';
+  if (buf.length >= 4 && buf.subarray(0, 4).toString('latin1') === 'OggS') return 'audio/ogg';
+  if (buf.length >= 3 && buf.subarray(0, 3).toString('latin1') === 'ID3') return 'audio/mpeg';
+  if (buf.length >= 2 && buf[0] === 0xff && (buf[1] & 0xe0) === 0xe0) return 'audio/mpeg';
+  if (buf.length >= 12 && buf.subarray(4, 8).toString('latin1') === 'ftyp') return 'audio/mp4';
+  if (buf.length >= 12 && buf.subarray(0, 4).toString('latin1') === 'RIFF' && buf.subarray(8, 12).toString('latin1') === 'WAVE') return 'audio/wav';
   return null;
 }
 
@@ -31,13 +36,18 @@ export async function saveUploadedFile(
   const f = req.file;
   if (!f || f.size === 0) return { id: null };
   const mime = detectMime(f.buffer);
+  if (kind === 'audio_sdr') {
+    if (!mime?.startsWith('audio/')) return { id: null, error: 'O arquivo precisa ser um áudio (MP3, OGG, M4A ou WAV).' };
+  } else if (mime?.startsWith('audio/')) {
+    return { id: null, error: 'Envie uma imagem, não um áudio.' };
+  }
   const allowPdf = kind === 'arte_venda';
-  if (!mime || (mime === 'application/pdf' && !allowPdf)) {
+  if (kind !== 'audio_sdr' && (!mime || (mime === 'application/pdf' && !allowPdf))) {
     return { id: null, error: allowPdf ? 'O arquivo precisa ser uma imagem (JPG, PNG, WEBP, GIF) ou PDF.' : 'O print precisa ser uma imagem (JPG, PNG, WEBP ou GIF).' };
   }
   const { rows } = await db.query<{ id: number }>(
     'INSERT INTO files (kind, filename, mime, size, data, created_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-    [kind, f.originalname.slice(0, 200) || 'arquivo', mime, f.size, f.buffer, req.user?.id ?? null],
+    [kind, f.originalname.slice(0, 200) || 'arquivo', mime!, f.size, f.buffer, req.user?.id ?? null],
   );
   return { id: rows[0].id };
 }
@@ -53,5 +63,6 @@ export async function findFile(id: number): Promise<StoredFile | null> {
 /** Print de lead: quem criou ou quem vê o funil. Arte: produção ou vendas. */
 export function canSeeFile(user: User, file: StoredFile): boolean {
   if (file.kind === 'print_lead') return file.created_by === user.id || can(user, 'funil');
+  if (file.kind === 'audio_sdr') return can(user, 'funil') || can(user, 'configuracoes');
   return can(user, 'producao') || can(user, 'pedidos');
 }

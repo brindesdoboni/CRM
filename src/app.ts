@@ -17,6 +17,7 @@ import { producaoRouter } from './routes/producao.js';
 import { geralRouter } from './routes/geral.js';
 import { configuracoesRouter } from './routes/configuracoes.js';
 import { apiRouter } from './routes/api.js';
+import { sdrRouter } from './routes/sdr.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 
@@ -29,7 +30,7 @@ export function createApp() {
   app.disable('x-powered-by');
 
   app.use(helmet({
-    contentSecurityPolicy: { directives: { 'script-src': ["'self'"], 'img-src': ["'self'", 'data:', 'blob:'] } },
+    contentSecurityPolicy: { directives: { 'script-src': ["'self'"], 'img-src': ["'self'", 'data:', 'blob:'], 'media-src': ["'self'"] } },
   }));
 
   app.get('/saude', async (_req, res) => {
@@ -72,6 +73,7 @@ export function createApp() {
   app.use(vendasRouter);
   app.use(producaoRouter);
   app.use(geralRouter);
+  app.use(sdrRouter);
   app.use(configuracoesRouter);
 
   app.use((_req, res) => {

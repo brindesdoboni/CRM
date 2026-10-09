@@ -23,3 +23,10 @@ export function parseIsoDate(value: unknown): string | null {
   const d = new Date(`${value}T12:00:00Z`);
   return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value ? null : value;
 }
+
+/** Soma dias corridos. Entrada e saída em aaaa-mm-dd. */
+export function addCalendarDays(isoDate: string, days: number): string {
+  const d = new Date(`${isoDate}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}

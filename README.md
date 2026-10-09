@@ -12,6 +12,9 @@ As regras completas do projeto estão em [CLAUDE.md](CLAUDE.md).
       sininho de avisos, origens editáveis
 - [x] **Semana 1, D3** — entrada automática de leads (`POST /api/leads`) para o formulário do site e o ManyChat,
       com chave por integração (Configurações → Integrações), origem obrigatória e anti-duplicidade por telefone
+- [x] **Semana 1, D4-6 (lado do CRM)** — SDR automático: perguntas de qualificação e pontuação editáveis,
+      classificação (quente/morno/frio/varejo), aviso 🔥 de lead quente, link wa.me com resumo para a Laura,
+      áudios padrão com link público para o ManyChat, recontato agendado só com consentimento e opção de sair
 - [ ] Etapa 2 — cadastros/configurações e clientes
 - [ ] Etapa 3 — novo lead, funil e prospecção
 - [ ] Etapa 4 — orçamento + página pública
@@ -32,6 +35,7 @@ limite de tentativas de login. Fuso America/Sao_Paulo.
 | `DATABASE_URL` | Endereço do PostgreSQL. No Railway use `${{Postgres.DATABASE_URL}}` |
 | `SESSION_SECRET` | Frase secreta longa (32+ caracteres) para proteger o login |
 | `NODE_ENV` | `production` |
+| `MANYCHAT_API_KEY` | (opcional) chave da API do ManyChat, para o SDR chamar sozinho no dia do recontato combinado |
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Criam o primeiro Admin quando o banco está vazio. Depois do primeiro acesso, troque a senha em "Minha conta" e pode apagar `ADMIN_PASSWORD` |
 
 ## Rodando no computador (para quem programa)

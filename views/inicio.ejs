@@ -11,11 +11,25 @@
   <a class="numero" href="/leads?periodo=hoje"><strong><%= c.hoje %></strong><span>leads hoje</span></a>
   <a class="numero" href="/leads?periodo=7"><strong><%= c.semana %></strong><span>leads em 7 dias</span></a>
   <a class="numero <%= c.esperando ? 'alerta' : '' %>" href="/leads?etapa=novo_lead"><strong><%= c.sem_atendimento %></strong><span>sem atendimento<% if (c.esperando) { %> · <%= c.esperando %> há +2h<% } %></span></a>
+  <a class="numero <%= c.quentes ? 'alerta' : '' %>" href="/leads?classe=quente"><strong><%= c.quentes %></strong><span>🔥 quentes esperando</span></a>
   <a class="numero" href="/pedidos"><strong><%= prod.abertas %></strong><span>vendas na produção</span></a>
   <a class="numero <%= prod.atrasadas ? 'alerta' : '' %>" href="/pedidos"><strong><%= prod.atrasadas %></strong><span>OPs atrasadas</span></a>
   <a class="numero <%= prod.pausadas ? 'atencao' : '' %>" href="/pedidos"><strong><%= prod.pausadas %></strong><span>pausadas (problema)</span></a>
 </div>
 
+<% if (recontatos.length) { %>
+<div class="cartao destaque">
+  <h2>Recontatos de hoje (combinados com o cliente)</h2>
+  <ul class="recontatos">
+  <% recontatos.forEach(function (r) { %>
+    <li><a href="/leads/<%= r.lead_id %>"><strong><%= r.name || formatPhone(r.phone) %></strong></a> · <%= formatDate(r.due_date) %>
+      <% if (r.sent_auto_at) { %><span class="selo">SDR já chamou</span><% } %>
+      <br><span class="sutil pequeno">"<%= r.consent_text %>"<%= r.note ? ' · ' + r.note : '' %></span>
+      <a class="botao pequeno whats" href="<%= whatsappLink(r.phone) %>" target="_blank" rel="noopener">WhatsApp</a></li>
+  <% }) %>
+  </ul>
+</div>
+<% } %>
 <div class="grade grade-2-1">
   <div class="cartao">
     <div class="cabecalho"><h2>Últimos leads (todas as origens)</h2><a href="/leads">Ver todos →</a></div>
@@ -31,7 +45,7 @@
           <td><a href="/leads/<%= l.id %>"><%= l.customer_name || formatPhone(l.phone) %></a><% if (l.customer_name) { %><br><span class="sutil pequeno nowrap"><%= formatPhone(l.phone) %></span><% } %></td>
           <td><%= l.origin %></td>
           <td><%= l.product || '—' %><%= l.quantity ? ' · ' + l.quantity + ' un.' : '' %></td>
-          <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
+          <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (l.classification === 'quente') { %> <span class="selo classe-quente">🔥 <%= l.score %></span><% } %><% if (l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
           <td><a class="botao pequeno whats" href="<%= whatsappLink(l.phone) %>" target="_blank" rel="noopener">WhatsApp</a></td>
         </tr>
       <% }) %>

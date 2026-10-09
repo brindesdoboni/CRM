@@ -7,8 +7,13 @@
     <% if (canSell && lead.stage !== 'perdido') { %><a class="botao secundario" href="/pedidos/nova?lead=<%= lead.id %>">Virou venda → produção</a><% } %>
   </div>
 </div>
+<% if (lead.opt_out_at) { %><div class="aviso aviso-erro">Este cliente pediu para não ser chamado (desde <%= formatDate(lead.opt_out_at) %>). Só responda se ele chamar.</div><% } %>
 <div class="grade">
   <div class="cartao">
+    <% if (lead.classification || lead.score !== null) { %>
+    <p class="sdr-nota"><span class="selo classe-<%= lead.classification %>"><%= CLASSIFICATION_LABELS[lead.classification] || 'Sem classificação' %></span>
+      <% if (lead.score !== null) { %><strong><%= lead.score %> pontos</strong><% } %></p>
+    <% } %>
     <dl class="dados">
       <dt>Telefone</dt><dd><%= formatPhone(lead.phone) %></dd>
       <% if (lead.email) { %><dt>E-mail</dt><dd><%= lead.email %></dd><% } %>
@@ -21,6 +26,14 @@
       <dt>Atendimento</dt><dd><%= lead.assignee || 'Ninguém assumiu ainda' %></dd>
       <% if (lead.stage === 'perdido' && lead.lost_reason) { %><dt>Motivo da perda</dt><dd><%= lead.lost_reason %></dd><% } %>
     </dl>
+    <% if (Object.keys(answers).length) { %>
+      <h2>Respostas da qualificação</h2>
+      <dl class="dados">
+        <% Object.keys(answers).forEach(function (k) { var a = answers[k]; %>
+          <dt><%= a.pergunta %></dt><dd><%= a.resposta %> <span class="sutil pequeno">(<%= a.pontos %> pts)</span></dd>
+        <% }) %>
+      </dl>
+    <% } %>
     <% if (outros.length) { %>
       <h2>Outros contatos deste cliente</h2>
       <ul>
@@ -54,6 +67,53 @@
     <% } %>
   </div>
 </div>
+<% if (canManage) { %>
+<div class="grade">
+  <div class="cartao">
+    <h2>Resumo para o atendimento</h2>
+    <textarea readonly rows="6" data-copiar><%= resumo %></textarea>
+    <p class="acoes">
+      <% if (comercialPhone) { %><a class="botao secundario pequeno" href="<%= whatsappLink(comercialPhone, resumo) %>" target="_blank" rel="noopener">Mandar resumo para o WhatsApp comercial</a><% } %>
+    </p>
+  </div>
+  <div class="cartao">
+    <h2>Recontato combinado</h2>
+    <% if (recontatos.length) { %>
+    <ul class="recontatos">
+      <% recontatos.forEach(function (r) { %>
+        <li>
+          <strong><%= formatDate(r.due_date) %></strong> · <span class="selo"><%= r.status === 'agendado' ? (r.sent_auto_at ? 'SDR já chamou' : 'agendado') : r.status %></span>
+          <br><span class="sutil pequeno">Cliente disse: "<%= r.consent_text %>"<%= r.note ? ' · ' + r.note : '' %></span>
+          <% if (r.status === 'agendado') { %>
+          <form method="post" action="/leads/<%= lead.id %>/recontato/<%= r.id %>" class="em-linha">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="botao secundario pequeno" name="acao" value="feito" type="submit">Feito</button>
+            <button class="botao secundario pequeno" name="acao" value="cancelar" type="submit">Cancelar</button>
+          </form>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+    <% } %>
+    <% if (!lead.opt_out_at) { %>
+    <form method="post" action="/leads/<%= lead.id %>/recontato">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="linha">
+        <label class="curto">Data <input type="date" name="data" min="<%= amanha %>" required></label>
+        <label>Observação <input type="text" name="obs" placeholder="Ex.: mandar catálogo de Natal"></label>
+      </div>
+      <label>O que o cliente disse * <input type="text" name="consentimento" required placeholder='Ex.: "me chama daqui um mês"'></label>
+      <label class="opcao"><input type="checkbox" name="autorizou" required> O cliente pediu ou autorizou este recontato</label>
+      <button class="botao pequeno" type="submit">Agendar recontato</button>
+    </form>
+    <form method="post" action="/leads/<%= lead.id %>/sair" data-confirmar="Registrar que este cliente não quer mais ser chamado?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button class="link-perigo" type="submit">Cliente pediu para não ser mais chamado</button>
+    </form>
+    <% } %>
+  </div>
+</div>
+<% } %>
 <div class="cartao">
   <h2>Histórico</h2>
   <table class="tabela">

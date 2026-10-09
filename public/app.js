@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
     f.addEventListener('submit', function (e) { if (!window.confirm(f.dataset.confirmar)) e.preventDefault(); });
   });
   // Campos de copiar: seleciona tudo ao clicar
-  document.querySelectorAll('input[data-copiar]').forEach(function (i) {
+  document.querySelectorAll('[data-copiar]').forEach(function (i) {
     i.addEventListener('focus', function () { i.select(); });
   });
 });

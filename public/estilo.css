@@ -188,3 +188,17 @@ ol.nomes li { break-inside: avoid; padding: .1rem 0; }
   .op-lado-a-lado { grid-template-columns: 1fr 1fr; }
 }
 .cartao h2 + p, form + h2 { margin-top: 1.25rem; }
+.classe-quente { background: #fde7e7; color: #b42318; }
+.classe-morno { background: var(--atencao-fundo); color: var(--atencao-texto); }
+.classe-frio { background: #e8eefc; color: #1857c0; }
+.classe-varejo { background: #eef1f5; color: var(--sutil); }
+.sdr-nota { display: flex; gap: .6rem; align-items: center; margin: 0 0 .75rem; }
+.recontatos { list-style: none; padding: 0; margin: 0 0 1rem; }
+.recontatos li { padding: .5rem 0; border-bottom: 1px solid var(--borda); }
+.recontatos form { margin-top: .35rem; }
+button.link-perigo { background: none; border: 0; padding: 0; margin-top: .75rem; color: var(--erro-texto); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; }
+textarea[readonly] { background: var(--fundo); }
+.cartao.destaque { border-color: #e7a33e; background: #fffaf2; }
+form.cartao.inativo { opacity: .6; }
+audio { width: 100%; margin-bottom: .75rem; }
+code { background: #eef1f5; padding: 0 .3rem; border-radius: 4px; font-size: .85em; word-break: break-all; }
