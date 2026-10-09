@@ -4,6 +4,7 @@ import { findUserById, type User } from './lib/users.js';
 import { ROLE_LABELS } from './lib/roles.js';
 import { PERMISSIONS, can, homePath, type Permission } from './lib/permissions.js';
 import { formatDate, formatDateTime, formatMoney } from './lib/format.js';
+import { unreadCount } from './lib/notifications.js';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -30,7 +31,11 @@ export async function loadUser(req: Request, res: Response, next: NextFunction):
   }
   req.session.csrfToken ??= crypto.randomBytes(32).toString('hex');
   res.locals.currentUser = req.user ?? null;
-  res.locals.menu = req.user ? PERMISSIONS.filter((p) => can(req.user!, p.key)) : [];
+  // Quem vê o funil enxerga todos os leads: o menu chama "Leads"; para o Danielson continua "Novo lead"
+  res.locals.menu = req.user
+    ? PERMISSIONS.filter((p) => can(req.user!, p.key)).map((p) => (p.key === 'leads' && can(req.user!, 'funil') ? { ...p, label: 'Leads' } : p))
+    : [];
+  res.locals.unread = req.user ? await unreadCount(req.user.id) : 0;
   res.locals.csrfToken = req.session.csrfToken;
   res.locals.flash = req.session.flash ?? [];
   delete req.session.flash;

@@ -1,8 +1,9 @@
-export const ROLES = ['admin', 'lead', 'financeiro', 'producao'] as const;
+export const ROLES = ['admin', 'comercial', 'lead', 'financeiro', 'producao'] as const;
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {
   admin: 'Admin',
+  comercial: 'Comercial',
   lead: 'Lead',
   financeiro: 'Financeiro',
   producao: 'Produção',
@@ -10,6 +11,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
   admin: 'Vê tudo e controla usuários e permissões',
+  comercial: 'Padrão: painel, todos os leads, clientes, orçamentos e vendas (ex.: Laura)',
   lead: 'Padrão: só "Novo lead" e os leads que criou',
   financeiro: 'Padrão: Pix solicitados e comprovantes',
   producao: 'Padrão: painel de produção',

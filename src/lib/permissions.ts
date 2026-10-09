@@ -3,11 +3,11 @@ import type { Role } from './roles.js';
 /** Áreas do sistema que o Admin pode liberar ou bloquear para cada pessoa. */
 export const PERMISSIONS = [
   { key: 'inicio', label: 'Início', description: 'Painel com tarefas do dia, contadores e alertas', path: '/inicio' },
-  { key: 'leads', label: 'Novo lead', description: 'Cadastrar leads e ver os leads que a própria pessoa criou', path: '/leads' },
+  { key: 'leads', label: 'Novo lead', description: 'Cadastrar leads e ver os leads que a própria pessoa criou (com "Funil" marcado, vê todos)', path: '/leads' },
   { key: 'funil', label: 'Funil de vendas e prospecção', description: 'Ver e mover todos os leads e pedidos', path: '/funil' },
   { key: 'clientes', label: 'Clientes', description: 'Fichas dos clientes, dados, endereços e anotações', path: '/clientes' },
   { key: 'orcamentos', label: 'Orçamentos', description: 'Criar e enviar orçamentos', path: '/orcamentos' },
-  { key: 'pedidos', label: 'Pedidos', description: 'Pedidos, personalização, pagamento e confirmação', path: '/pedidos' },
+  { key: 'pedidos', label: 'Vendas', description: 'Cadastrar vendas e mandar para a produção', path: '/pedidos' },
   { key: 'financeiro', label: 'Financeiro', description: 'Pix solicitados e comprovantes', path: '/financeiro' },
   { key: 'producao', label: 'Produção', description: 'Painel de produção e ordens de produção (OP)', path: '/producao' },
   { key: 'configuracoes', label: 'Cadastros e configurações', description: 'Produtos, origens, formas de pagamento, regras e textos prontos', path: '/configuracoes' },
@@ -20,6 +20,7 @@ const ALL = PERMISSIONS.map((p) => p.key) as Permission[];
 /** O que cada perfil vê quando o Admin não personalizou. */
 export const ROLE_DEFAULT_PERMISSIONS: Record<Role, Permission[]> = {
   admin: ALL,
+  comercial: ['inicio', 'leads', 'funil', 'clientes', 'orcamentos', 'pedidos'],
   lead: ['leads'],
   financeiro: ['financeiro'],
   producao: ['producao'],

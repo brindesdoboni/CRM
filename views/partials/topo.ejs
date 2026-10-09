@@ -20,6 +20,7 @@
     <% } %>
   </nav>
   <div class="conta">
+    <a href="/avisos" class="sino <%= unread ? 'tem' : '' %>" title="Avisos" aria-label="Avisos<%= unread ? ' (' + unread + ' novos)' : '' %>">🔔<% if (unread) { %><span class="contador"><%= unread > 99 ? '99+' : unread %></span><% } %></a>
     <a href="/minha-conta" title="Minha conta"><%= currentUser.name %> · <%= ROLE_LABELS[currentUser.role] %></a>
     <form method="post" action="/sair">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">

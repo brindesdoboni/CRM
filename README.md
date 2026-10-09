@@ -6,6 +6,10 @@ As regras completas do projeto estão em [CLAUDE.md](CLAUDE.md).
 ## Situação
 
 - [x] **Etapa 1** — estrutura, banco, login e perfis (Admin, Lead, Financeiro, Produção), permissões por pessoa (o Admin escolhe o que cada um vê), histórico de eventos
+- [x] **Semana 1, D1-2** — painel único (Início com leads de todas as origens), perfil Comercial (Laura),
+      tela "Novo lead" do Danielson (com print e aviso de telefone repetido), vendas para a produção,
+      painel da Jô (OPs por prazo, arte, nomes, checklist, peso/medidas, CSV do LightBurn, "Tenho um problema"),
+      sininho de avisos, origens editáveis
 - [ ] Etapa 2 — cadastros/configurações e clientes
 - [ ] Etapa 3 — novo lead, funil e prospecção
 - [ ] Etapa 4 — orçamento + página pública

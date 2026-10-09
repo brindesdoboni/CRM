@@ -1,16 +1,56 @@
 <%- include('partials/topo') %>
-<h1>Início</h1>
-<div class="grade">
-  <div class="cartao">
-    <h2>Tarefas do dia</h2>
-    <p class="sutil">Os contadores por etapa, tarefas e alertas aparecem aqui a partir das próximas etapas.</p>
-  </div>
-  <div class="cartao">
-    <h2>Atalhos</h2>
-    <% if (currentUser.role === 'admin') { %><p><a href="/usuarios">Usuários e permissões (quem vê o quê)</a></p><% } %>
-    <p><a href="/minha-conta">Trocar minha senha</a></p>
+<div class="cabecalho">
+  <h1>Início</h1>
+  <div class="acoes">
+    <% if (menu.some(function (m) { return m.key === 'leads'; })) { %><a class="botao" href="/leads#novo">+ Novo lead</a><% } %>
+    <% if (menu.some(function (m) { return m.key === 'pedidos'; })) { %><a class="botao secundario" href="/pedidos/nova">+ Nova venda</a><% } %>
   </div>
 </div>
+
+<div class="numeros">
+  <a class="numero" href="/leads?periodo=hoje"><strong><%= c.hoje %></strong><span>leads hoje</span></a>
+  <a class="numero" href="/leads?periodo=7"><strong><%= c.semana %></strong><span>leads em 7 dias</span></a>
+  <a class="numero <%= c.esperando ? 'alerta' : '' %>" href="/leads?etapa=novo_lead"><strong><%= c.sem_atendimento %></strong><span>sem atendimento<% if (c.esperando) { %> · <%= c.esperando %> há +2h<% } %></span></a>
+  <a class="numero" href="/pedidos"><strong><%= prod.abertas %></strong><span>vendas na produção</span></a>
+  <a class="numero <%= prod.atrasadas ? 'alerta' : '' %>" href="/pedidos"><strong><%= prod.atrasadas %></strong><span>OPs atrasadas</span></a>
+  <a class="numero <%= prod.pausadas ? 'atencao' : '' %>" href="/pedidos"><strong><%= prod.pausadas %></strong><span>pausadas (problema)</span></a>
+</div>
+
+<div class="grade grade-2-1">
+  <div class="cartao">
+    <div class="cabecalho"><h2>Últimos leads (todas as origens)</h2><a href="/leads">Ver todos →</a></div>
+    <% if (ultimos.length === 0) { %>
+      <p class="sutil">Nenhum lead ainda. Os leads do Danielson, do site e do Instagram vão aparecer aqui.</p>
+    <% } else { %>
+    <table class="tabela">
+      <thead><tr><th>Quando</th><th>Cliente</th><th>Origem</th><th>Interesse</th><th>Etapa</th><th></th></tr></thead>
+      <tbody>
+      <% ultimos.forEach(function (l) { %>
+        <tr>
+          <td class="nowrap"><%= formatDateTime(l.created_at) %></td>
+          <td><a href="/leads/<%= l.id %>"><%= l.customer_name || formatPhone(l.phone) %></a><% if (l.customer_name) { %><br><span class="sutil pequeno nowrap"><%= formatPhone(l.phone) %></span><% } %></td>
+          <td><%= l.origin %></td>
+          <td><%= l.product || '—' %><%= l.quantity ? ' · ' + l.quantity + ' un.' : '' %></td>
+          <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
+          <td><a class="botao pequeno whats" href="<%= whatsappLink(l.phone) %>" target="_blank" rel="noopener">WhatsApp</a></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+  <div class="cartao">
+    <h2>Leads por origem (30 dias)</h2>
+    <% if (porOrigem.length === 0) { %><p class="sutil">Sem leads nos últimos 30 dias.</p><% } else { var max = porOrigem[0].n; %>
+      <ul class="barras">
+      <% porOrigem.forEach(function (o) { %>
+        <li><a href="/leads?origem=<%= o.id %>&periodo=30"><span class="rotulo"><%= o.name %></span><span class="barra"><span style="width: <%= Math.max(4, Math.round(o.n / max * 100)) %>%"></span></span><strong><%= o.n %></strong></a></li>
+      <% }) %>
+      </ul>
+    <% } %>
+  </div>
+</div>
+
 <div class="cartao">
   <h2>Atividade recente</h2>
   <% if (recentes.length === 0) { %>

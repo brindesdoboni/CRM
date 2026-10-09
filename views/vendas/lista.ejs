@@ -1,0 +1,32 @@
+<%- include('../partials/topo') %>
+<div class="cabecalho">
+  <h1>Vendas</h1>
+  <a class="botao" href="/pedidos/nova">+ Nova venda para produção</a>
+</div>
+<p class="abas">
+  <a href="/pedidos" class="<%= situacao !== 'concluidas' ? 'ativo' : '' %>">Em aberto</a>
+  <a href="/pedidos?situacao=concluidas" class="<%= situacao === 'concluidas' ? 'ativo' : '' %>">Concluídas</a>
+</p>
+<div class="cartao">
+  <% if (sales.length === 0) { %>
+    <p class="sutil">Nenhuma venda aqui.</p>
+  <% } else { %>
+  <table class="tabela">
+    <thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Cor</th><th>Qtd</th><th>Prazo</th><th>Situação</th></tr></thead>
+    <tbody>
+    <% sales.forEach(function (s) { %>
+      <tr class="<%= s.status !== 'concluida' && s.atrasada ? 'atrasada' : '' %>">
+        <td><a href="/pedidos/<%= s.id %>"><strong><%= s.code %></strong></a></td>
+        <td><%= s.customer_name %><br><span class="sutil pequeno"><%= s.origin %></span></td>
+        <td><%= s.product %></td>
+        <td><%= s.color || '—' %></td>
+        <td><%= s.quantity %></td>
+        <td class="nowrap"><%= formatDate(s.due_date) %></td>
+        <td><span class="selo status-<%= s.status %>"><%= SALE_STATUS_LABELS[s.status] %></span></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/rodape') %>
