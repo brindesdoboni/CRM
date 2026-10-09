@@ -177,3 +177,15 @@ describe('formatação', () => {
     expect(normalizePhone('+55 (11) 98765-4321')).toBe('11987654321');
   });
 });
+
+describe('recuperação da senha do Admin', () => {
+  it('ADMIN_RESET_PASSWORD troca a senha do ADMIN_EMAIL', async () => {
+    const { resetAdminPasswordFromEnv } = await import('../src/lib/users.js');
+    process.env.ADMIN_EMAIL = 'lucas@exemplo.com';
+    process.env.ADMIN_RESET_PASSWORD = 'nova-senha-123';
+    await resetAdminPasswordFromEnv(() => {});
+    delete process.env.ADMIN_RESET_PASSWORD;
+    expect((await login('lucas@exemplo.com', 'nova-senha-123')).res.headers.location).toBe('/inicio');
+    expect((await login('lucas@exemplo.com', 'senha-admin-1')).res.status).toBe(401);
+  });
+});

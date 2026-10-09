@@ -109,3 +109,28 @@ export async function ensureFirstAdmin(log: (msg: string) => void = console.log)
   );
   log(`Primeiro Admin criado: ${user.email}`);
 }
+
+/**
+ * Recuperação da senha do Admin sem precisar do sistema: se ADMIN_RESET_PASSWORD estiver definida no Railway,
+ * a senha do usuário ADMIN_EMAIL vira essa ao iniciar (e ele volta a ser Admin ativo). Depois, apague a variável.
+ */
+export async function resetAdminPasswordFromEnv(log: (msg: string) => void = console.log): Promise<void> {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_RESET_PASSWORD;
+  if (!password) return;
+  if (!email) return log('ADMIN_RESET_PASSWORD definida, mas falta ADMIN_EMAIL.');
+  const problem = validatePassword(password);
+  if (problem) return log(`ADMIN_RESET_PASSWORD inválida: ${problem}`);
+  const { rows } = await pool.query<{ id: number }>(
+    `UPDATE users SET password_hash = $2, role = 'admin', active = true, permissions = NULL, updated_at = now()
+      WHERE lower(email) = lower($1) RETURNING id`,
+    [email, await hashPassword(password)],
+  );
+  if (!rows[0]) return log(`ADMIN_RESET_PASSWORD: nenhum usuário com o e-mail ${email}.`);
+  await pool.query(`DELETE FROM session WHERE (sess->>'userId')::int = $1`, [rows[0].id]);
+  await pool.query(
+    `INSERT INTO events (user_id, entity_type, entity_id, action, description) VALUES (NULL, 'user', $1, 'senha_redefinida', $2)`,
+    [String(rows[0].id), 'Senha do Admin redefinida pela variável ADMIN_RESET_PASSWORD do Railway'],
+  );
+  log(`Senha do Admin ${email} redefinida. Apague ADMIN_RESET_PASSWORD no Railway.`);
+}
