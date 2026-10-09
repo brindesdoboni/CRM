@@ -1,0 +1,32 @@
+<%- include('partials/topo') %>
+<h1>Cadastros e configurações</h1>
+<div class="grade">
+  <div class="cartao">
+    <h2>Origens dos leads e vendas</h2>
+    <p class="sutil pequeno">Desativar tira a origem das listas novas, mas mantém o histórico.</p>
+    <table class="tabela">
+      <tbody>
+      <% origins.forEach(function (o) { %>
+        <tr class="<%= o.active ? '' : 'inativo' %>"><td>
+          <form method="post" action="/configuracoes/origens/<%= o.id %>" class="em-linha">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="text" name="nome" value="<%= o.name %>" required aria-label="Nome da origem">
+            <label class="opcao"><input type="checkbox" name="ativa" <%= o.active ? 'checked' : '' %>> ativa</label>
+            <button class="botao secundario pequeno" type="submit">Salvar</button>
+          </form>
+        </td></tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <form method="post" action="/configuracoes/origens" class="em-linha">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="text" name="nome" placeholder="Nova origem" required aria-label="Nova origem">
+      <button class="botao pequeno" type="submit">Adicionar</button>
+    </form>
+  </div>
+  <div class="cartao">
+    <h2>Em breve</h2>
+    <p class="sutil">Produtos, formas de pagamento, motivos de perda, regras (atacado, prazos, validade), textos prontos e áudios padrão do SDR.</p>
+  </div>
+</div>
+<%- include('partials/rodape') %>

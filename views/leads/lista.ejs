@@ -1,0 +1,71 @@
+<%- include('../partials/topo') %>
+<h1><%= all ? 'Leads' : 'Novo lead' %></h1>
+
+<div class="<%= all ? 'grade grade-1-2' : '' %>">
+<div class="cartao <%= all ? '' : 'estreito' %>" id="novo">
+  <% if (all) { %><h2>Novo lead</h2><% } %>
+  <% if (error) { %><div class="aviso aviso-erro"><%= error %></div><% } %>
+  <form method="post" action="/leads" enctype="multipart/form-data" data-form-lead>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <label>Telefone (WhatsApp) com DDD *
+      <input type="tel" name="telefone" value="<%= form.phone %>" required inputmode="tel" placeholder="(11) 98765-4321" autocomplete="off" data-telefone>
+    </label>
+    <div class="aviso aviso-atencao" data-telefone-aviso hidden></div>
+    <label>Nome do cliente <input type="text" name="nome" value="<%= form.name %>" autocomplete="off"></label>
+    <label>Loja de origem *
+      <select name="origem" required>
+        <option value="">Escolha…</option>
+        <% origins.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === form.originId ? 'selected' : '' %>><%= o.name %></option><% }) %>
+      </select>
+    </label>
+    <div class="linha">
+      <label>Produto <input type="text" name="produto" value="<%= form.product %>" autocomplete="off"></label>
+      <label class="curto">Quantidade <input type="number" name="quantidade" value="<%= form.quantity %>" min="1" step="1"></label>
+    </div>
+    <label>Observações <textarea name="observacoes" rows="3"><%= form.notes %></textarea></label>
+    <label>Print da conversa (imagem)
+      <input type="file" name="arquivo" accept="image/*" data-colar>
+      <span class="sutil pequeno">Dica: copie o print e aperte Ctrl+V nesta página para anexar.</span>
+    </label>
+    <button type="submit" class="botao">Salvar lead</button>
+  </form>
+</div>
+
+<div class="cartao">
+  <h2><%= all ? 'Todos os leads' : 'Leads que você cadastrou' %></h2>
+  <% if (all) { %>
+  <form method="get" action="/leads" class="filtros">
+    <input type="search" name="busca" value="<%= filtros.busca %>" placeholder="Nome, telefone ou produto">
+    <select name="origem"><option value="">Todas as origens</option><% origins.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === filtros.origem ? 'selected' : '' %>><%= o.name %></option><% }) %></select>
+    <select name="etapa"><option value="">Todas as etapas</option><% STAGES.forEach(function (s) { %><option value="<%= s.key %>" <%= s.key === filtros.etapa ? 'selected' : '' %>><%= s.label %></option><% }) %></select>
+    <select name="periodo">
+      <option value="">Qualquer data</option>
+      <option value="hoje" <%= filtros.periodo === 'hoje' ? 'selected' : '' %>>Hoje</option>
+      <option value="7" <%= filtros.periodo === '7' ? 'selected' : '' %>>Últimos 7 dias</option>
+      <option value="30" <%= filtros.periodo === '30' ? 'selected' : '' %>>Últimos 30 dias</option>
+    </select>
+    <button class="botao secundario" type="submit">Filtrar</button>
+  </form>
+  <% } %>
+  <% if (leads.length === 0) { %>
+    <p class="sutil">Nenhum lead encontrado.</p>
+  <% } else { %>
+  <table class="tabela">
+    <thead><tr><th>Quando</th><th>Cliente</th><th>Origem</th><th>Interesse</th><th>Etapa</th><% if (all) { %><th></th><% } %></tr></thead>
+    <tbody>
+    <% leads.forEach(function (l) { %>
+      <tr>
+        <td class="nowrap"><%= formatDateTime(l.created_at) %></td>
+        <td><a href="/leads/<%= l.id %>"><%= l.customer_name || formatPhone(l.phone) %></a><% if (l.customer_name) { %><br><span class="sutil pequeno nowrap"><%= formatPhone(l.phone) %></span><% } %></td>
+        <td><%= l.origin %><% if (all && l.creator) { %><br><span class="sutil pequeno">por <%= l.creator %></span><% } %></td>
+        <td><%= l.product || '—' %><%= l.quantity ? ' · ' + l.quantity + ' un.' : '' %><%= l.print_file_id ? ' 📎' : '' %></td>
+        <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (all && l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
+        <% if (all) { %><td><a class="botao pequeno whats" href="<%= whatsappLink(l.phone) %>" target="_blank" rel="noopener">WhatsApp</a></td><% } %>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+</div>
+<%- include('../partials/rodape') %>

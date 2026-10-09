@@ -1,0 +1,20 @@
+<%- include('partials/topo') %>
+<div class="cabecalho">
+  <h1>Avisos</h1>
+  <% if (avisos.some(function (a) { return !a.read_at; })) { %>
+  <form method="post" action="/avisos/lidos">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button class="botao secundario" type="submit">Marcar todos como lidos</button>
+  </form>
+  <% } %>
+</div>
+<div class="cartao">
+  <% if (avisos.length === 0) { %><p class="sutil">Nenhum aviso.</p><% } else { %>
+  <ul class="avisos">
+    <% avisos.forEach(function (a) { %>
+      <li class="<%= a.read_at ? '' : 'novo' %>"><a href="/avisos/<%= a.id %>"><%= a.title %></a> <span class="sutil pequeno"><%= formatDateTime(a.created_at) %></span></li>
+    <% }) %>
+  </ul>
+  <% } %>
+</div>
+<%- include('partials/rodape') %>

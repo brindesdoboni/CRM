@@ -1,0 +1,116 @@
+<%- include('../partials/topo') %>
+<p class="nao-imprimir"><a href="/producao">← Produção</a></p>
+<div class="cabecalho">
+  <h1>OP <%= sale.code %> <span class="selo status-<%= sale.status %>"><%= SALE_STATUS_LABELS[sale.status] %></span></h1>
+  <div class="acoes nao-imprimir">
+    <% if (names.length) { %><a class="botao secundario" href="/producao/<%= sale.id %>/lightburn.csv">Baixar CSV para o LightBurn</a><% } %>
+    <button class="botao secundario" type="button" data-imprimir>Imprimir OP</button>
+  </div>
+</div>
+<% if (sale.status === 'pausada') { %><div class="aviso aviso-erro"><strong>Pausada:</strong> <%= sale.pause_reason %></div><% } %>
+<% if (sale.status !== 'concluida' && sale.atrasada) { %><div class="aviso aviso-erro">Prazo vencido em <%= formatDate(sale.due_date) %>.</div><% } %>
+<% if (sale.status !== 'concluida' && sale.vence_hoje) { %><div class="aviso aviso-atencao">Vence hoje.</div><% } %>
+
+<div class="cartao op-dados">
+  <dl class="dados dados-grandes">
+    <dt>Produto</dt><dd><%= sale.product %><% if (sale.product_code) { %> <span class="sutil">(cód. <%= sale.product_code %>)</span><% } %></dd>
+    <dt>Cor</dt><dd><%= sale.color || '—' %></dd>
+    <dt>Quantidade</dt><dd><strong><%= sale.quantity %></strong></dd>
+    <dt>Fonte</dt><dd><%= sale.font || '—' %></dd>
+    <dt>Prazo</dt><dd><%= formatDate(sale.due_date) %></dd>
+    <dt>Cliente</dt><dd><%= sale.customer_name %> <span class="sutil">· <%= sale.origin %></span></dd>
+    <% if (sale.notes) { %><dt>Observações</dt><dd class="quebra"><%= sale.notes %></dd><% } %>
+  </dl>
+</div>
+
+<div class="grade op-lado-a-lado">
+  <div class="cartao">
+    <h2>Arte</h2>
+    <% if (!sale.art_file_id) { %>
+      <p class="sutil">Nenhuma arte anexada. Peça ao comercial.</p>
+    <% } else if (sale.art_mime === 'application/pdf') { %>
+      <p><a class="botao" href="/arquivos/<%= sale.art_file_id %>" target="_blank">Abrir arte (PDF)</a></p>
+    <% } else { %>
+      <a href="/arquivos/<%= sale.art_file_id %>" target="_blank"><img class="arte" src="/arquivos/<%= sale.art_file_id %>" alt="Arte"></a>
+    <% } %>
+  </div>
+  <div class="cartao">
+    <h2>Nomes (<%= names.length %>)</h2>
+    <% if (names.length === 0) { %><p class="sutil">Sem nomes para gravar.</p><% } else { %>
+      <ol class="nomes"><% names.forEach(function (n) { %><li><%= n %></li><% }) %></ol>
+    <% } %>
+  </div>
+</div>
+
+<div class="grade nao-imprimir">
+  <div class="cartao">
+    <h2>Checklist</h2>
+    <ul class="checklist">
+    <% CHECKLIST.forEach(function (label, i) { var item = i + 1; var d = done.get(item); %>
+      <li class="<%= d ? 'feito' : '' %>">
+        <% if (item < 9) { %>
+        <form method="post" action="/producao/<%= sale.id %>/checklist">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="item" value="<%= item %>">
+          <input type="hidden" name="marcar" value="<%= d ? '0' : '1' %>">
+          <button type="submit" class="caixa" <%= sale.status === 'concluida' || sale.status === 'pausada' ? 'disabled' : '' %> aria-label="<%= d ? 'Desmarcar' : 'Marcar' %> <%= label %>"><%= d ? '✓' : '' %></button>
+        </form>
+        <% } else { %>
+          <span class="caixa"><%= d ? '✓' : '' %></span>
+        <% } %>
+        <span><strong><%= item %>.</strong> <%= label %><% if (d) { %><br><span class="sutil pequeno"><%= d.name %> · <%= formatDateTime(d.done_at) %></span><% } %></span>
+      </li>
+    <% }) %>
+    </ul>
+  </div>
+  <div class="cartao">
+    <h2>Peso e medidas da embalagem</h2>
+    <form method="post" action="/producao/<%= sale.id %>/medidas">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <fieldset <%= sale.status === 'concluida' ? 'disabled' : '' %>>
+      <div class="linha">
+        <label>Peso (kg) <input type="text" inputmode="decimal" name="peso" value="<%= sale.weight_kg ? String(sale.weight_kg).replace('.', ',') : '' %>" required></label>
+        <label>Altura (cm) <input type="text" inputmode="decimal" name="altura" value="<%= sale.height_cm ? String(sale.height_cm).replace('.', ',') : '' %>" required></label>
+        <label>Largura (cm) <input type="text" inputmode="decimal" name="largura" value="<%= sale.width_cm ? String(sale.width_cm).replace('.', ',') : '' %>" required></label>
+        <label>Comprimento (cm) <input type="text" inputmode="decimal" name="comprimento" value="<%= sale.length_cm ? String(sale.length_cm).replace('.', ',') : '' %>" required></label>
+      </div>
+      <button class="botao secundario" type="submit">Salvar peso e medidas</button>
+      </fieldset>
+    </form>
+
+    <% if (sale.status === 'concluida') { %>
+      <div class="aviso aviso-sucesso">Concluída em <%= formatDateTime(sale.completed_at) %><%= sale.completed_by_name ? ' por ' + sale.completed_by_name : '' %>.</div>
+    <% } else if (sale.status === 'pausada') { %>
+      <form method="post" action="/producao/<%= sale.id %>/retomar">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="botao" type="submit">Retomar produção</button>
+      </form>
+    <% } else { %>
+      <h2>Concluir</h2>
+      <p class="sutil pequeno">Libera só com os itens 1 a 8 marcados e peso + medidas preenchidos.</p>
+      <form method="post" action="/producao/<%= sale.id %>/concluir">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="botao" type="submit">Produção concluída</button>
+      </form>
+      <h2>Tenho um problema</h2>
+      <form method="post" action="/producao/<%= sale.id %>/problema">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>O que aconteceu? <input type="text" name="motivo" required placeholder="Ex.: arte com nome errado, falta material"></label>
+        <button class="botao perigo" type="submit">Pausar e avisar o comercial</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<div class="cartao nao-imprimir">
+  <h2>Histórico</h2>
+  <table class="tabela">
+    <thead><tr><th>Quando</th><th>Quem</th><th>O quê</th></tr></thead>
+    <tbody>
+    <% history.forEach(function (h) { %>
+      <tr><td class="nowrap"><%= formatDateTime(h.created_at) %></td><td><%= h.author || 'Sistema' %></td><td><%= h.description %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/rodape') %>

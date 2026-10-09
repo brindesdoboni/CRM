@@ -1,0 +1,38 @@
+<%- include('../partials/topo') %>
+<h1>Produção</h1>
+<% if (!concluidas) { %>
+<div class="numeros">
+  <div class="numero <%= resumo.atrasadas ? 'alerta' : '' %>"><strong><%= resumo.atrasadas %></strong><span>atrasadas</span></div>
+  <div class="numero <%= resumo.hoje ? 'atencao' : '' %>"><strong><%= resumo.hoje %></strong><span>vencem hoje</span></div>
+  <div class="numero"><strong><%= sales.length %></strong><span>em aberto</span></div>
+  <div class="numero <%= resumo.pausadas ? 'atencao' : '' %>"><strong><%= resumo.pausadas %></strong><span>pausadas</span></div>
+</div>
+<% } %>
+<p class="abas">
+  <a href="/producao" class="<%= concluidas ? '' : 'ativo' %>">Em aberto (por prazo)</a>
+  <a href="/producao?situacao=concluidas" class="<%= concluidas ? 'ativo' : '' %>">Concluídas</a>
+</p>
+<div class="cartao">
+  <% if (sales.length === 0) { %>
+    <p class="sutil">Nada por aqui.</p>
+  <% } else { %>
+  <table class="tabela tabela-grande">
+    <thead><tr><th>Prazo</th><th>Código</th><th>Produto</th><th>Cor</th><th>Qtd</th><th>Arte</th><th>Checklist</th><th>Situação</th></tr></thead>
+    <tbody>
+    <% sales.forEach(function (s) { var cls = concluidas ? '' : (s.atrasada ? 'atrasada' : (s.vence_hoje ? 'vence-hoje' : '')); %>
+      <tr class="<%= cls %>">
+        <td class="nowrap"><strong><%= formatDate(s.due_date) %></strong><% if (!concluidas && s.atrasada) { %><br><span class="pequeno">ATRASADA</span><% } else if (!concluidas && s.vence_hoje) { %><br><span class="pequeno">VENCE HOJE</span><% } %></td>
+        <td><a href="/producao/<%= s.id %>"><strong><%= s.code %></strong></a><br><span class="sutil pequeno"><%= s.customer_name %></span></td>
+        <td><%= s.product %><% if (s.product_code) { %><br><span class="sutil pequeno">cód. <%= s.product_code %></span><% } %></td>
+        <td><%= s.color || '—' %></td>
+        <td><strong><%= s.quantity %></strong></td>
+        <td><% if (s.art_file_id) { %><a href="/producao/<%= s.id %>">ver</a><% } else { %><span class="sutil">sem arte</span><% } %></td>
+        <td><%= s.feitos %>/9</td>
+        <td><span class="selo status-<%= s.status %>"><%= SALE_STATUS_LABELS[s.status] %></span><% if (s.pause_reason) { %><br><span class="pequeno"><%= s.pause_reason %></span><% } %></td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <% } %>
+</div>
+<%- include('../partials/rodape') %>

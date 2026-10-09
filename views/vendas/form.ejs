@@ -1,0 +1,47 @@
+<%- include('../partials/topo') %>
+<p><a href="/pedidos">← Vendas</a></p>
+<h1><%= editing ? 'Venda ' + editing.code : 'Nova venda para produção' %></h1>
+<% if (editing && editing.status === 'concluida') { %><div class="aviso aviso-sucesso">Produção concluída. Esta venda não pode mais ser alterada.</div><% } %>
+<% if (editing && editing.status === 'pausada') { %><div class="aviso aviso-erro"><strong>Produção pausada:</strong> <%= editing.pause_reason %></div><% } %>
+<div class="cartao">
+  <% if (error) { %><div class="aviso aviso-erro"><%= error %></div><% } %>
+  <form method="post" action="<%= editing ? '/pedidos/' + editing.id : '/pedidos' %>" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <input type="hidden" name="lead" value="<%= form.leadId %>">
+    <fieldset <%= editing && editing.status === 'concluida' ? 'disabled' : '' %>>
+    <div class="linha">
+      <label class="curto">Código da venda <input type="text" name="codigo" value="<%= form.code %>" placeholder="automático" autocomplete="off"></label>
+      <label>Cliente * <input type="text" name="cliente" value="<%= form.customerName %>" required autocomplete="off"></label>
+      <label>Telefone <input type="tel" name="telefone" value="<%= form.phone %>" inputmode="tel" autocomplete="off"></label>
+    </div>
+    <div class="linha">
+      <label>Origem *
+        <select name="origem" required>
+          <option value="">Escolha…</option>
+          <% origins.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === form.originId ? 'selected' : '' %>><%= o.name %><%= o.active ? '' : ' (desativada)' %></option><% }) %>
+        </select>
+      </label>
+      <label>Produto * <input type="text" name="produto" value="<%= form.product %>" required autocomplete="off"></label>
+      <label class="curto">Código do produto <input type="text" name="codigo_produto" value="<%= form.productCode %>" autocomplete="off"></label>
+    </div>
+    <div class="linha">
+      <label>Cor <input type="text" name="cor" value="<%= form.color %>" autocomplete="off"></label>
+      <label class="curto">Quantidade * <input type="number" name="quantidade" value="<%= form.quantity %>" min="1" step="1" required></label>
+      <label class="curto">Prazo da produção * <input type="date" name="prazo" value="<%= form.dueDate %>" required></label>
+    </div>
+    <div class="linha">
+      <label>Nomes para gravar (um por linha) <textarea name="nomes" rows="6"><%= form.names %></textarea></label>
+      <div>
+        <label>Fonte <input type="text" name="fonte" value="<%= form.font %>" autocomplete="off"></label>
+        <label>Arte (imagem ou PDF)<% if (editing && editing.art_file_id) { %> — <a href="/arquivos/<%= editing.art_file_id %>" target="_blank">ver arte atual</a><% } %>
+          <input type="file" name="arquivo" accept="image/*,application/pdf" data-colar>
+          <% if (editing && editing.art_file_id) { %><span class="sutil pequeno">Envie outra só se quiser trocar.</span><% } %>
+        </label>
+      </div>
+    </div>
+    <label>Observações para a produção <textarea name="observacoes" rows="3"><%= form.notes %></textarea></label>
+    <button type="submit" class="botao"><%= editing ? 'Salvar' : 'Mandar para a produção' %></button>
+    </fieldset>
+  </form>
+</div>
+<%- include('../partials/rodape') %>

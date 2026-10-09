@@ -1,0 +1,66 @@
+<%- include('../partials/topo') %>
+<p><a href="/leads">← Leads</a></p>
+<div class="cabecalho">
+  <h1><%= lead.customer_name || formatPhone(lead.phone) %> <span class="selo etapa-<%= lead.stage %>"><%= stageLabel(lead.stage) %></span></h1>
+  <div class="acoes">
+    <a class="botao whats" href="<%= whatsappLink(lead.phone) %>" target="_blank" rel="noopener">Abrir WhatsApp</a>
+    <% if (canSell && lead.stage !== 'perdido') { %><a class="botao secundario" href="/pedidos/nova?lead=<%= lead.id %>">Virou venda → produção</a><% } %>
+  </div>
+</div>
+<div class="grade">
+  <div class="cartao">
+    <dl class="dados">
+      <dt>Telefone</dt><dd><%= formatPhone(lead.phone) %></dd>
+      <dt>Origem</dt><dd><%= lead.origin %> <span class="sutil pequeno">(<%= CHANNEL_LABELS[lead.channel] || lead.channel %>)</span></dd>
+      <dt>Produto</dt><dd><%= lead.product || '—' %></dd>
+      <dt>Quantidade</dt><dd><%= lead.quantity || '—' %></dd>
+      <dt>Observações</dt><dd class="quebra"><%= lead.notes || '—' %></dd>
+      <dt>Cadastrado</dt><dd><%= formatDateTime(lead.created_at) %><%= lead.creator ? ' por ' + lead.creator : '' %></dd>
+      <dt>Atendimento</dt><dd><%= lead.assignee || 'Ninguém assumiu ainda' %></dd>
+      <% if (lead.stage === 'perdido' && lead.lost_reason) { %><dt>Motivo da perda</dt><dd><%= lead.lost_reason %></dd><% } %>
+    </dl>
+    <% if (outros.length) { %>
+      <h2>Outros contatos deste cliente</h2>
+      <ul>
+        <% outros.forEach(function (o) { %><li><a href="/leads/<%= o.id %>"><%= formatDate(o.created_at) %> · <%= o.origin %> · <%= o.product || 'sem produto' %></a> <span class="sutil">(<%= stageLabel(o.stage) %>)</span></li><% }) %>
+      </ul>
+    <% } %>
+  </div>
+  <div class="cartao">
+    <% if (lead.print_file_id) { %>
+      <h2>Print</h2>
+      <a href="/arquivos/<%= lead.print_file_id %>" target="_blank"><img class="print" src="/arquivos/<%= lead.print_file_id %>" alt="Print da conversa"></a>
+    <% } %>
+    <% if (canManage) { %>
+      <h2>Atendimento</h2>
+      <% if (!lead.assignee || lead.assigned_to !== currentUser.id) { %>
+      <form method="post" action="/leads/<%= lead.id %>/assumir">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button class="botao secundario" type="submit">Assumir este lead</button>
+      </form>
+      <% } %>
+      <form method="post" action="/leads/<%= lead.id %>/etapa" data-form-etapa>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label>Mudar etapa
+          <select name="etapa">
+            <% STAGES.forEach(function (s) { %><option value="<%= s.key %>" <%= s.key === lead.stage ? 'selected' : '' %>><%= s.label %></option><% }) %>
+          </select>
+        </label>
+        <label data-motivo <%= lead.stage === 'perdido' ? '' : 'hidden' %>>Motivo da perda * <input type="text" name="motivo" value="<%= lead.lost_reason || '' %>"></label>
+        <button class="botao" type="submit">Salvar etapa</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+<div class="cartao">
+  <h2>Histórico</h2>
+  <table class="tabela">
+    <thead><tr><th>Quando</th><th>Quem</th><th>O quê</th></tr></thead>
+    <tbody>
+    <% history.forEach(function (h) { %>
+      <tr><td class="nowrap"><%= formatDateTime(h.created_at) %></td><td><%= h.author || 'Sistema' %></td><td><%= h.description %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+</div>
+<%- include('../partials/rodape') %>
