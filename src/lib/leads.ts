@@ -31,7 +31,7 @@ export function stageLabel(key: string): string {
 }
 
 export const CHANNEL_LABELS: Record<string, string> = {
-  manual: 'Cadastro manual', site: 'Site', instagram: 'Instagram', whatsapp: 'WhatsApp',
+  manual: 'Cadastro manual', site: 'Formulário do site', instagram: 'Instagram', whatsapp: 'WhatsApp', manychat: 'ManyChat', outro: 'Integração',
 };
 
 export interface Origin { id: number; name: string; active: boolean; position: number }
@@ -49,10 +49,10 @@ export function validPhone(raw: string): string | null {
   return digits.length === 10 || digits.length === 11 ? digits : null;
 }
 
-export interface Customer { id: number; phone: string; name: string | null; created_at: Date }
+export interface Customer { id: number; phone: string; name: string | null; email: string | null; created_at: Date }
 
 export async function findCustomerByPhone(phone: string, db: Queryable = pool): Promise<Customer | null> {
-  const { rows } = await db.query<Customer>('SELECT id, phone, name, created_at FROM customers WHERE phone = $1', [phone]);
+  const { rows } = await db.query<Customer>('SELECT id, phone, name, email, created_at FROM customers WHERE phone = $1', [phone]);
   return rows[0] ?? null;
 }
 
@@ -74,7 +74,7 @@ export async function upsertCustomer(
   const { rows } = await db.query<Customer>(
     `INSERT INTO customers (phone, name, created_by) VALUES ($1, $2, $3)
      ON CONFLICT (phone) DO UPDATE SET updated_at = now()
-     RETURNING id, phone, name, created_at, (xmax <> 0) AS existed`,
+     RETURNING id, phone, name, email, created_at, (xmax <> 0) AS existed`,
     [phone, name, userId],
   );
   const { existed, ...customer } = rows[0] as Customer & { existed: boolean };

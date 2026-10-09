@@ -56,11 +56,12 @@ async function loadLeads(req: Request) {
   }
   const { rows } = await pool.query(
     `SELECT l.id, l.stage, l.product, l.quantity, l.channel, l.created_at, l.print_file_id,
-            c.phone, c.name AS customer_name, o.name AS origin, u.name AS creator, a.name AS assignee
+            c.phone, c.name AS customer_name, o.name AS origin, COALESCE(u.name, i.name) AS creator, a.name AS assignee
        FROM leads l
        JOIN customers c ON c.id = l.customer_id
        JOIN origins o ON o.id = l.origin_id
        LEFT JOIN users u ON u.id = l.created_by
+       LEFT JOIN integrations i ON i.id = l.integration_id
        LEFT JOIN users a ON a.id = l.assigned_to
       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
       ORDER BY l.created_at DESC
@@ -132,11 +133,12 @@ async function loadLead(req: Request) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return null;
   const { rows } = await pool.query(
-    `SELECT l.*, c.phone, c.name AS customer_name, o.name AS origin, u.name AS creator, a.name AS assignee
+    `SELECT l.*, c.phone, c.email, c.name AS customer_name, o.name AS origin, COALESCE(u.name, i.name) AS creator, a.name AS assignee
        FROM leads l
        JOIN customers c ON c.id = l.customer_id
        JOIN origins o ON o.id = l.origin_id
        LEFT JOIN users u ON u.id = l.created_by
+       LEFT JOIN integrations i ON i.id = l.integration_id
        LEFT JOIN users a ON a.id = l.assigned_to
       WHERE l.id = $1`,
     [id],

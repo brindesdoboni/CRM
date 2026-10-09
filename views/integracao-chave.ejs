@@ -1,0 +1,16 @@
+<%- include('partials/topo') %>
+<p><a href="/configuracoes">← Cadastros e configurações</a></p>
+<h1>Integração "<%= name %>"</h1>
+<div class="cartao">
+  <div class="aviso aviso-atencao"><strong>Copie agora:</strong> por segurança, esta chave aparece só uma vez. Se perder, gere uma nova.</div>
+  <label>Endereço (URL) para colar na ferramenta, já com a chave
+    <input type="text" readonly value="<%= url %>?token=<%= token %>" data-copiar>
+  </label>
+  <p class="sutil pequeno">Se a ferramenta deixar colocar cabeçalho (ManyChat deixa), prefira o endereço sem a chave e o cabeçalho abaixo:</p>
+  <label>Endereço <input type="text" readonly value="<%= url %>" data-copiar></label>
+  <label>Cabeçalho <input type="text" readonly value="X-CRM-Token: <%= token %>" data-copiar></label>
+  <h2>Campos que o CRM entende</h2>
+  <p><strong>telefone</strong> (obrigatório, com DDD), nome, email, produto, quantidade, mensagem. Também aceita os nomes em inglês (phone, name, message…). Qualquer outro campo vai para as observações do lead.</p>
+  <p><a class="botao" href="/configuracoes">Pronto, já copiei</a></p>
+</div>
+<%- include('partials/rodape') %>

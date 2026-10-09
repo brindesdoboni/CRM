@@ -25,6 +25,52 @@
     </form>
   </div>
   <div class="cartao">
+    <h2>Integrações (leads automáticos)</h2>
+    <p class="sutil pequeno">Cada ferramenta (formulário do site, ManyChat) recebe uma chave própria e manda os leads direto para o CRM. Telefone repetido não cria lead duplicado: o contato entra no lead em aberto.</p>
+    <% if (integrations.length) { %>
+    <table class="tabela">
+      <thead><tr><th>Nome</th><th>Origem</th><th>Leads</th><th>Último envio</th><th></th></tr></thead>
+      <tbody>
+      <% integrations.forEach(function (i) { %>
+        <tr class="<%= i.active ? '' : 'inativo' %>">
+          <td><strong><%= i.name %></strong><br><span class="sutil pequeno"><%= INTEGRATION_CHANNELS[i.channel] %> · chave …<%= i.token_hint %></span></td>
+          <td><%= i.origin %></td>
+          <td><%= i.leads %></td>
+          <td class="nowrap"><%= i.last_used_at ? formatDateTime(i.last_used_at) : '—' %></td>
+          <td>
+            <form method="post" action="/configuracoes/integracoes/<%= i.id %>/ativa" class="em-linha">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="botao secundario pequeno" type="submit"><%= i.active ? 'Desativar' : 'Ativar' %></button>
+            </form>
+            <form method="post" action="/configuracoes/integracoes/<%= i.id %>/nova-chave" class="em-linha" data-confirmar="A chave atual vai parar de funcionar. Gerar uma nova?">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="botao secundario pequeno" type="submit">Nova chave</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+    <form method="post" action="/configuracoes/integracoes">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="linha">
+        <label>Nome <input type="text" name="nome" placeholder="Ex.: Formulário do site" required></label>
+        <label>Tipo
+          <select name="canal" required>
+            <% Object.keys(INTEGRATION_CHANNELS).forEach(function (k) { %><option value="<%= k %>"><%= INTEGRATION_CHANNELS[k] %></option><% }) %>
+          </select>
+        </label>
+        <label>Origem dos leads
+          <select name="origem" required>
+            <% origins.filter(function (o) { return o.active; }).forEach(function (o) { %><option value="<%= o.id %>"><%= o.name %></option><% }) %>
+          </select>
+        </label>
+      </div>
+      <button class="botao pequeno" type="submit">Criar integração</button>
+    </form>
+  </div>
+  <div class="cartao">
     <h2>Em breve</h2>
     <p class="sutil">Produtos, formas de pagamento, motivos de perda, regras (atacado, prazos, validade), textos prontos e áudios padrão do SDR.</p>
   </div>
