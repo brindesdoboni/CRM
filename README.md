@@ -35,6 +35,7 @@ limite de tentativas de login. Fuso America/Sao_Paulo.
 | `DATABASE_URL` | Endereço do PostgreSQL. No Railway use `${{Postgres.DATABASE_URL}}` |
 | `SESSION_SECRET` | Frase secreta longa (32+ caracteres) para proteger o login |
 | `NODE_ENV` | `production` |
+| `ADMIN_RESET_PASSWORD` | (só se o Admin esquecer a senha) a senha do `ADMIN_EMAIL` vira esta ao reiniciar; depois de entrar, apague a variável |
 | `MANYCHAT_API_KEY` | (opcional) chave da API do ManyChat, para o SDR chamar sozinho no dia do recontato combinado |
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Criam o primeiro Admin quando o banco está vazio. Depois do primeiro acesso, troque a senha em "Minha conta" e pode apagar `ADMIN_PASSWORD` |
 
