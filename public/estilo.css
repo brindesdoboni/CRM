@@ -1,11 +1,16 @@
 :root {
-  --fundo: #f4f5f7;
+  /* Cores da marca Brindes DoBoni (tiradas do logo) */
+  --vinho: #74201f;
+  --vinho-escuro: #561716;
+  --dourado: #de9e36;
+  --dourado-claro: #fbf1de;
+  --fundo: #f7f4f1;
   --cartao: #ffffff;
   --texto: #1d2330;
   --sutil: #667085;
   --borda: #dde1e7;
-  --primaria: #1f6feb;
-  --primaria-escura: #1857c0;
+  --primaria: #74201f;
+  --primaria-escura: #561716;
   --sucesso-fundo: #e7f6ec;
   --sucesso-texto: #1a7f37;
   --erro-fundo: #fdecec;
@@ -24,17 +29,20 @@ h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
 
 .topo {
   display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
-  background: #1d2330; color: #fff; padding: .6rem 1.5rem;
+  background: #fff; color: var(--texto); padding: .45rem 1.5rem;
+  border-bottom: 3px solid var(--dourado); box-shadow: 0 1px 4px rgba(0,0,0,.06);
 }
-.topo a { color: #fff; text-decoration: none; }
-.marca { font-weight: 700; }
-.marca span { font-weight: 400; opacity: .7; }
+.topo a { color: var(--texto); text-decoration: none; }
+.marca { display: flex; align-items: center; gap: .55rem; font-weight: 800; color: var(--vinho) !important; letter-spacing: .01em; }
+.marca img { width: 40px; height: 40px; }
+.marca span { font-weight: 500; color: var(--dourado); }
 .menu { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
-.menu a { padding: .35rem .7rem; border-radius: 6px; opacity: .85; }
-.menu a:hover, .menu a.ativo { background: rgba(255,255,255,.12); opacity: 1; }
+.menu a { padding: .35rem .7rem; border-radius: 6px; font-weight: 500; }
+.menu a:hover { background: var(--dourado-claro); }
+.menu a.ativo { background: var(--vinho); color: #fff; }
 .conta { display: flex; align-items: center; gap: .75rem; font-size: .9rem; }
 .conta form { margin: 0; }
-button.link { background: none; border: 0; color: #fff; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+button.link { background: none; border: 0; color: var(--vinho); text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
 
 .conteudo { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
 .conteudo.centro { max-width: 420px; padding-top: 10vh; }
@@ -77,13 +85,16 @@ label.opcao { font-weight: 400; display: flex; gap: .5rem; align-items: baseline
 .tabela th { font-size: .85rem; color: var(--sutil); font-weight: 600; }
 .tabela tr.inativo td { color: var(--sutil); }
 .selo { display: inline-block; padding: .1rem .55rem; border-radius: 99px; font-size: .8rem; font-weight: 600; background: #eef1f5; }
-.selo-admin { background: #e8eefc; color: #1857c0; }
+.selo-admin { background: #f6e3e2; color: var(--vinho); }
 .selo-comercial { background: #e6f7f7; color: #0b6e6e; }
 .selo-lead { background: #fff4e5; color: #9a5b00; }
 .selo-financeiro { background: #e7f6ec; color: #1a7f37; }
 .selo-producao { background: #f3e8fd; color: #7a2cbf; }
 
-.login h1 { margin-bottom: .25rem; }
+.login { text-align: center; border-top: 4px solid var(--vinho); }
+.login form { text-align: left; }
+.login .logo-login { width: 120px; height: 120px; margin: 0 auto .5rem; display: block; }
+.login h1 { margin-bottom: .25rem; color: var(--vinho); }
 .login .botao { width: 100%; }
 
 @media (max-width: 700px) {
@@ -126,7 +137,7 @@ a.numero:hover { border-color: var(--primaria); }
 .barras { list-style: none; margin: 0; padding: 0; }
 .barras li a { display: grid; grid-template-columns: 1fr 1fr auto; gap: .5rem; align-items: center; padding: .3rem 0; color: var(--texto); text-decoration: none; }
 .barra { background: #eef1f5; border-radius: 4px; height: 10px; overflow: hidden; }
-.barra span { display: block; height: 100%; background: var(--primaria); }
+.barra span { display: block; height: 100%; background: var(--dourado); }
 
 .filtros { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .filtros > * { flex: 1 1 150px; margin: 0; }
@@ -137,7 +148,7 @@ a.numero:hover { border-color: var(--primaria); }
 .em-linha label.opcao { margin: 0; }
 .abas { display: flex; gap: .25rem; }
 .abas a { padding: .35rem .8rem; border-radius: 6px; text-decoration: none; }
-.abas a.ativo { background: var(--texto); color: #fff; }
+.abas a.ativo { background: var(--vinho); color: #fff; }
 
 .dados { display: grid; grid-template-columns: max-content 1fr; gap: .35rem 1rem; margin: 0 0 1rem; }
 .dados dt { color: var(--sutil); }
@@ -155,7 +166,7 @@ ol.nomes li { break-inside: avoid; padding: .1rem 0; }
 .tabela tr.vence-hoje td { background: var(--atencao-fundo); }
 .tabela-grande { font-size: 1.05rem; }
 .status-aguardando { background: #eef1f5; }
-.status-em_producao { background: #e8eefc; color: #1857c0; }
+.status-em_producao { background: var(--dourado-claro); color: #8a5a10; }
 .status-pausada { background: var(--erro-fundo); color: var(--erro-texto); }
 .status-concluida { background: var(--sucesso-fundo); color: var(--sucesso-texto); }
 .etapa-novo_lead { background: #fff4e5; color: #9a5b00; }
@@ -174,7 +185,7 @@ ol.nomes li { break-inside: avoid; padding: .1rem 0; }
 .avisos { list-style: none; margin: 0; padding: 0; }
 .avisos li { padding: .55rem 0; border-bottom: 1px solid var(--borda); }
 .avisos li.novo a { font-weight: 700; }
-.avisos li.novo::before { content: "●"; color: var(--primaria); margin-right: .4rem; }
+.avisos li.novo::before { content: "●"; color: var(--dourado); margin-right: .4rem; }
 
 @media (max-width: 900px) {
   .grade-2-1, .grade-1-2, .op-lado-a-lado { grid-template-columns: 1fr; }
@@ -202,3 +213,10 @@ textarea[readonly] { background: var(--fundo); }
 form.cartao.inativo { opacity: .6; }
 audio { width: 100%; margin-bottom: .75rem; }
 code { background: #eef1f5; padding: 0 .3rem; border-radius: 4px; font-size: .85em; word-break: break-all; }
+
+/* Marca: detalhes em dourado */
+h1 { color: var(--vinho); }
+.cartao h2 { color: var(--texto); }
+.cartao h2::before { content: ""; display: inline-block; width: 4px; height: .95em; background: var(--dourado); border-radius: 2px; margin-right: .5rem; vertical-align: -1px; }
+.numero strong { color: var(--vinho); }
+.sino .contador { background: var(--vinho); }
