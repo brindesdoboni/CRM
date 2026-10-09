@@ -1,0 +1,83 @@
+<%- include('partials/topo') %>
+<p><a href="/configuracoes">← Cadastros e configurações</a></p>
+<h1>SDR automático</h1>
+<div class="aviso aviso-atencao"><strong>Regra de ouro:</strong> o SDR nunca inicia contato. Ele só responde quem chamou (DM, WhatsApp, comentário, formulário). Recontato só quando o próprio cliente pediu, com o consentimento registrado no lead e a opção de sair.</div>
+
+<div class="grade">
+  <div class="cartao">
+    <h2>Regras e pontuação</h2>
+    <form method="post" action="/configuracoes/sdr/regras">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="linha">
+        <label class="curto">Quente a partir de <input type="number" name="nota_quente" min="0" value="<%= settings.sdr_nota_quente %>" required></label>
+        <label class="curto">Morno a partir de <input type="number" name="nota_morno" min="0" value="<%= settings.sdr_nota_morno %>" required></label>
+        <label class="curto">Atacado a partir de (un.) <input type="number" name="limite_atacado" min="1" value="<%= settings.limite_atacado %>" required></label>
+      </div>
+      <label>WhatsApp comercial (Laura), para onde o lead quente vai <input type="tel" name="whatsapp_comercial" value="<%= settings.whatsapp_comercial %>" placeholder="(11) 98765-4321"></label>
+      <label>Mensagem para varejo (abaixo do limite de atacado) <textarea name="mensagem_varejo" rows="2"><%= settings.sdr_mensagem_varejo %></textarea></label>
+      <label>Fluxo de recontato no ManyChat (flow_ns) <input type="text" name="flow_recontato" value="<%= settings.manychat_flow_recontato %>" placeholder="content20250101000000_000000">
+        <span class="sutil pequeno"><%= manychatKey ? 'Chave da API do ManyChat configurada.' : 'Falta a variável MANYCHAT_API_KEY no Railway; sem ela, no dia do recontato só o comercial é avisado.' %></span>
+      </label>
+      <button class="botao" type="submit">Salvar regras</button>
+    </form>
+  </div>
+
+  <div class="cartao">
+    <h2>Como o ManyChat conversa com o CRM</h2>
+    <ol class="pequeno">
+      <li>Em Cadastros e configurações → Integrações, crie a integração do tipo ManyChat e copie a chave.</li>
+      <li>No fluxo do ManyChat, depois das perguntas, use "Solicitação externa" (POST) para <code><%= baseUrl %>/api/leads</code> com o cabeçalho <code>X-CRM-Token</code>.</li>
+      <li>Mande no corpo: <code>telefone</code>, <code>nome</code>, <code>subscriber_id</code> e um campo para cada pergunta abaixo (o nome do campo é o que está entre colchetes).</li>
+      <li>Na resposta, mapeie <code>classificacao</code>, <code>link_whatsapp_comercial</code> e <code>mensagem_varejo</code> para campos do ManyChat e use-os nas condições (quente → botão para o WhatsApp da Laura; varejo → site/Shopee).</li>
+      <li>Recontato pedido: envie <code>recontato_dias</code> (ou <code>recontato_data</code>) e <code>recontato_consentimento</code> com o que o cliente disse. Para sair: <code>sair = sim</code>.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="cartao">
+  <h2>Perguntas de qualificação</h2>
+  <p class="sutil pequeno">Opções: uma por linha, no formato <code>Resposta = pontos</code>. Escreva <code>varejo</code> no fim para mandar ao site/Shopee (ex.: <code>Menos de 20 = 0 varejo</code>). Pergunta sem opções só guarda a resposta.</p>
+  <div class="grade">
+  <% questions.concat([null]).forEach(function (q) { %>
+    <form method="post" action="/configuracoes/sdr/perguntas" class="cartao <%= q && !q.active ? 'inativo' : '' %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (q) { %><input type="hidden" name="id" value="<%= q.id %>"><% } else { %><h2>Nova pergunta</h2><% } %>
+      <label>Pergunta <input type="text" name="pergunta" value="<%= q ? q.question : '' %>" required></label>
+      <div class="linha">
+        <label>Campo [nome no ManyChat] <input type="text" name="campo" value="<%= q ? q.key : '' %>" required pattern="[a-z][a-z0-9_]{1,40}"></label>
+        <label class="curto">Ordem <input type="number" name="ordem" value="<%= q ? q.position : questions.length + 1 %>"></label>
+      </div>
+      <label>Opções e pontos <textarea name="opcoes" rows="4"><%= q ? optionsToText(q.options) : '' %></textarea></label>
+      <% if (q) { %><label class="opcao"><input type="checkbox" name="ativa" <%= q.active ? 'checked' : '' %>> ativa</label><% } %>
+      <button class="botao secundario pequeno" type="submit"><%= q ? 'Salvar' : 'Adicionar pergunta' %></button>
+    </form>
+  <% }) %>
+  </div>
+</div>
+
+<div class="cartao">
+  <h2>Áudios padrão</h2>
+  <p class="sutil pequeno">Gravem os áudios no celular (MP3, OGG, M4A ou WAV, até 8 MB). Cada áudio tem um link público para colar no ManyChat ("Áudio" → URL).</p>
+  <div class="grade">
+  <% audios.concat([null]).forEach(function (a) { %>
+    <form method="post" action="/configuracoes/sdr/audios" enctype="multipart/form-data" class="cartao <%= a && !a.active ? 'inativo' : '' %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (a) { %><input type="hidden" name="id" value="<%= a.id %>"><% } else { %><h2>Novo áudio</h2><% } %>
+      <label>Nome <input type="text" name="titulo" value="<%= a ? a.title : '' %>" required placeholder="Ex.: Boas-vindas"></label>
+      <label>Quando usar <input type="text" name="quando" value="<%= a ? (a.when_to_use || '') : '' %>" placeholder="Ex.: primeira resposta no Instagram"></label>
+      <% if (a && a.file_id) { %>
+        <audio controls preload="none" src="/arquivos/<%= a.file_id %>"></audio>
+        <label>Link público para o ManyChat <input type="text" readonly value="<%= baseUrl %>/publico/audio/<%= a.public_token %>" data-copiar></label>
+      <% } %>
+      <label><%= a ? 'Trocar arquivo' : 'Arquivo de áudio *' %> <input type="file" name="arquivo" accept="audio/*" <%= a ? '' : 'required' %>></label>
+      <label>O que o áudio diz (texto) <textarea name="transcricao" rows="2"><%= a ? (a.transcript || '') : '' %></textarea></label>
+      <div class="linha">
+        <label class="curto">Ordem <input type="number" name="ordem" value="<%= a ? a.position : audios.length + 1 %>"></label>
+        <% if (a) { %><label class="opcao"><input type="checkbox" name="ativo" <%= a.active ? 'checked' : '' %>> ativo</label><% } %>
+      </div>
+      <button class="botao secundario pequeno" type="submit"><%= a ? 'Salvar' : 'Adicionar áudio' %></button>
+    </form>
+  <% }) %>
+  </div>
+</div>
+<%- include('partials/rodape') %>

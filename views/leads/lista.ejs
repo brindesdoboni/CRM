@@ -38,6 +38,7 @@
     <input type="search" name="busca" value="<%= filtros.busca %>" placeholder="Nome, telefone ou produto">
     <select name="origem"><option value="">Todas as origens</option><% origins.forEach(function (o) { %><option value="<%= o.id %>" <%= String(o.id) === filtros.origem ? 'selected' : '' %>><%= o.name %></option><% }) %></select>
     <select name="etapa"><option value="">Todas as etapas</option><% STAGES.forEach(function (s) { %><option value="<%= s.key %>" <%= s.key === filtros.etapa ? 'selected' : '' %>><%= s.label %></option><% }) %></select>
+    <select name="classe"><option value="">Qualquer classificação</option><% Object.keys(CLASSIFICATION_LABELS).forEach(function (k) { %><option value="<%= k %>" <%= k === filtros.classe ? 'selected' : '' %>><%= CLASSIFICATION_LABELS[k] %></option><% }) %></select>
     <select name="periodo">
       <option value="">Qualquer data</option>
       <option value="hoje" <%= filtros.periodo === 'hoje' ? 'selected' : '' %>>Hoje</option>
@@ -59,7 +60,7 @@
         <td><a href="/leads/<%= l.id %>"><%= l.customer_name || formatPhone(l.phone) %></a><% if (l.customer_name) { %><br><span class="sutil pequeno nowrap"><%= formatPhone(l.phone) %></span><% } %></td>
         <td><%= l.origin %><% if (all && l.creator) { %><br><span class="sutil pequeno">por <%= l.creator %></span><% } %></td>
         <td><%= l.product || '—' %><%= l.quantity ? ' · ' + l.quantity + ' un.' : '' %><%= l.print_file_id ? ' 📎' : '' %></td>
-        <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (all && l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
+        <td><span class="selo etapa-<%= l.stage %>"><%= stageLabel(l.stage) %></span><% if (all && l.classification) { %> <span class="selo classe-<%= l.classification %>"><%= CLASSIFICATION_LABELS[l.classification] %><%= l.score !== null ? ' · ' + l.score : '' %></span><% } %><% if (all && l.assignee) { %><br><span class="sutil pequeno"><%= l.assignee %></span><% } %></td>
         <% if (all) { %><td><a class="botao pequeno whats" href="<%= whatsappLink(l.phone) %>" target="_blank" rel="noopener">WhatsApp</a></td><% } %>
       </tr>
     <% }) %>
