@@ -38,6 +38,8 @@ export function createApp() {
     res.json({ ok: true });
   });
 
+  // Muda a cada publicação: força o navegador a baixar o CSS/JS/logo novos em vez de usar a cópia guardada.
+  app.locals.v = Date.now().toString(36);
   app.use('/static', express.static(path.join(root, 'public'), { maxAge: config.isProduction ? '1d' : 0 }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
   app.use(express.json({ limit: '1mb' }));

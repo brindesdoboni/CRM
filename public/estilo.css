@@ -34,7 +34,7 @@ h2 { font-size: 1.1rem; margin: 0 0 .75rem; }
 }
 .topo a { color: var(--texto); text-decoration: none; }
 .marca { display: flex; align-items: center; gap: .55rem; font-weight: 800; color: var(--vinho) !important; letter-spacing: .01em; }
-.marca img { width: 40px; height: 40px; }
+.marca img { width: 52px; height: 52px; }
 .marca span { font-weight: 500; color: var(--dourado); }
 .menu { display: flex; gap: .25rem; flex-wrap: wrap; flex: 1; }
 .menu a { padding: .35rem .7rem; border-radius: 6px; font-weight: 500; }

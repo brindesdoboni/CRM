@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= title %> · CRM DoBoni</title>
-  <link rel="stylesheet" href="/static/estilo.css">
-  <link rel="icon" type="image/png" href="/static/favicon.png">
-  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+  <link rel="stylesheet" href="/static/estilo.css?v=<%= v %>">
+  <link rel="icon" type="image/png" href="/static/favicon.png?v=<%= v %>">
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png?v=<%= v %>">
   <meta name="theme-color" content="#74201f">
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=<%= v %>" defer></script>
 </head>
 <body>
 <% if (currentUser) { %>
 <header class="topo">
-  <a class="marca" href="/"><img src="/static/logo-160.png" alt="">Brindes DoBoni <span>CRM</span></a>
+  <a class="marca" href="/"><img src="/static/logo-160.png?v=<%= v %>" alt="">Brindes DoBoni <span>CRM</span></a>
   <nav class="menu">
     <% menu.forEach(function (m) { %>
       <a href="<%= m.path %>" class="<%= path.startsWith(m.path) ? 'ativo' : '' %>"><%= m.label %></a>
