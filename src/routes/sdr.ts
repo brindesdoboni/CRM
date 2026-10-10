@@ -7,6 +7,7 @@ import { validPhone } from '../lib/leads.js';
 import { listQuestions, optionsToText, parseOptionsText } from '../lib/sdr.js';
 import { getSettings, setSetting } from '../lib/settings.js';
 import { flash, requirePermission } from '../middleware.js';
+import { CONSENT_TEXT } from './formulario.js';
 
 /** Configurações do SDR automático: regras, perguntas de qualificação e áudios padrão. */
 export const sdrRouter = Router();
@@ -21,7 +22,7 @@ sdrRouter.get('/configuracoes/sdr', async (req, res) => {
   ]);
   res.render('sdr', {
     title: 'SDR automático', settings, questions, audios, optionsToText,
-    baseUrl: `${req.protocol}://${req.get('host')}`, manychatKey: !!process.env.MANYCHAT_API_KEY,
+    baseUrl: `${req.protocol}://${req.get('host')}`, manychatKey: !!process.env.MANYCHAT_API_KEY, consentText: CONSENT_TEXT,
   });
 });
 
@@ -43,6 +44,7 @@ sdrRouter.post('/configuracoes/sdr/regras', async (req, res) => {
   await setSetting('limite_atacado', String(atacado));
   await setSetting('whatsapp_comercial', whats ? validPhone(whats)! : '');
   await setSetting('sdr_mensagem_varejo', String(req.body.mensagem_varejo ?? '').trim().slice(0, 1000));
+  await setSetting('manychat_flow_boas_vindas', String(req.body.flow_boas_vindas ?? '').trim().slice(0, 200));
   await setSetting('manychat_flow_recontato', String(req.body.flow_recontato ?? '').trim().slice(0, 200));
   await recordEvent({ userId: req.user!.id, entityType: 'config', entityId: 'sdr', action: 'alterada', description: `Alterou as regras do SDR (quente ≥ ${quente}, morno ≥ ${morno}, atacado a partir de ${atacado})`, ip: req.ip });
   flash(req, 'sucesso', 'Regras do SDR salvas.');

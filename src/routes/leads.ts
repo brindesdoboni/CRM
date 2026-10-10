@@ -167,8 +167,9 @@ leadsRouter.get('/leads/:id', async (req, res) => {
     ),
     pool.query(
       `SELECT l.id, l.created_at, l.product, l.stage, o.name AS origin FROM leads l JOIN origins o ON o.id = l.origin_id
-        WHERE l.customer_id = $1 AND l.id <> $2 ORDER BY l.created_at DESC`,
-      [lead.customer_id, lead.id],
+        WHERE l.customer_id = $1 AND l.id <> $2 AND ($3::int IS NULL OR l.created_by = $3) ORDER BY l.created_at DESC`,
+      // Quem não vê o funil (ex.: Danielson) só enxerga os leads que ele mesmo cadastrou
+      [lead.customer_id, lead.id, can(req.user!, 'funil') ? null : req.user!.id],
     ),
     pool.query(
       `SELECT r.*, u.name AS done_by_name FROM recontacts r LEFT JOIN users u ON u.id = r.done_by

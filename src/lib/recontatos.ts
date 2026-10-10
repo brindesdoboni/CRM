@@ -3,24 +3,7 @@ import { recordEvent } from './events.js';
 import { formatPhone } from './leads.js';
 import { notifyWhoCan } from './notifications.js';
 import { getSettings } from './settings.js';
-
-/** Dispara um fluxo do ManyChat para o contato (ex.: a mensagem de recontato com a opção de sair). */
-async function sendManychatFlow(subscriberId: string, flowNs: string): Promise<boolean> {
-  const key = process.env.MANYCHAT_API_KEY;
-  if (!key || !subscriberId || !flowNs) return false;
-  try {
-    const res = await fetch('https://api.manychat.com/fb/sending/sendFlow', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscriber_id: subscriberId, flow_ns: flowNs }),
-      signal: AbortSignal.timeout(15000),
-    });
-    const body = (await res.json().catch(() => ({}))) as { status?: string };
-    return res.ok && body.status === 'success';
-  } catch {
-    return false;
-  }
-}
+import { sendManychatFlow } from './manychat.js';
 
 /**
  * Recontatos que venceram hoje (ou antes): o SDR chama sozinho pelo ManyChat quando possível

@@ -23,6 +23,8 @@
       <dt>Observações</dt><dd class="quebra"><%= lead.notes || '—' %></dd>
       <% if (lead.last_contact_at && new Date(lead.last_contact_at) - new Date(lead.created_at) > 60000) { %><dt>Último contato</dt><dd><%= formatDateTime(lead.last_contact_at) %></dd><% } %>
       <dt>Cadastrado</dt><dd><%= formatDateTime(lead.created_at) %><%= lead.creator ? ' por ' + lead.creator : '' %></dd>
+      <% if (lead.consent_at) { %><dt>Consentimento</dt><dd>"<%= lead.consent_text %>" <span class="sutil pequeno">aceito em <%= formatDateTime(lead.consent_at) %><%= lead.consent_ip ? ' · IP ' + lead.consent_ip : '' %></span></dd><% } %>
+      <% if (lead.welcome_sent_at) { %><dt>Boas-vindas</dt><dd>Enviada pelo SDR no WhatsApp em <%= formatDateTime(lead.welcome_sent_at) %></dd><% } %>
       <dt>Atendimento</dt><dd><%= lead.assignee || 'Ninguém assumiu ainda' %></dd>
       <% if (lead.stage === 'perdido' && lead.lost_reason) { %><dt>Motivo da perda</dt><dd><%= lead.lost_reason %></dd><% } %>
     </dl>
