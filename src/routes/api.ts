@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { withTransaction } from '../db/pool.js';
 import { recordEvent } from '../lib/events.js';
 import { INTEGRATION_CHANNELS, findIntegrationByToken, readLeadPayload } from '../lib/integrations.js';
-import { formatPhone, listOrigins, upsertCustomer, validPhone, whatsappLink } from '../lib/leads.js';
+import { findOpenLead, formatPhone, listOrigins, upsertCustomer, validPhone, whatsappLink } from '../lib/leads.js';
 import { parseIsoDate, todayIso, addCalendarDays } from '../lib/dates.js';
 import { classify, collectAnswers, leadSummary, listQuestions, scoreOf, type Answer } from '../lib/sdr.js';
 import { getSettings } from '../lib/settings.js';
@@ -19,10 +19,6 @@ const limiter = rateLimit({
   legacyHeaders: false,
   handler: (_req, res) => { res.status(429).json({ ok: false, erro: 'Muitas requisições. Tente de novo em um minuto.' }); },
 });
-
-/** Etapas em que o lead ainda está "em aberto": um novo contato entra nele em vez de criar outro. */
-const OPEN_STAGES = ['novo_lead', 'atendimento', 'aguardando_informacoes', 'orcamento_preparacao', 'orcamento_enviado', 'negociacao'];
-const DEDUP_DAYS = 30;
 
 /** Campos de controle (não viram observação). */
 const RESERVED = new Set(['sair', 'opt_out', 'recontato_dias', 'recontato_data', 'recontato_consentimento', 'recontato_obs']);
@@ -88,13 +84,9 @@ apiRouter.post('/api/leads', limiter, async (req, res) => {
     const who = customer.name || formatPhone(customer.phone);
 
     // Anti-duplicidade: o cliente já tem um lead em aberto recente? O novo contato entra nele.
-    const { rows: abertos } = await db.query<{ id: number; score: number | null; classification: string | null; quantity: number | null; product: string | null; data: { qualificacao?: Record<string, Answer> } }>(
-      `SELECT id, score, classification, quantity, product, data FROM leads
-        WHERE customer_id = $1 AND stage = ANY($2) AND last_contact_at > now() - make_interval(days => $3)
-        ORDER BY last_contact_at DESC LIMIT 1`,
-      [customer.id, OPEN_STAGES, DEDUP_DAYS],
-    );
-    const before = abertos[0];
+    const before = await findOpenLead<{ score: number | null; classification: string | null; quantity: number | null; product: string | null; data: { qualificacao?: Record<string, Answer> } }>(
+      customer.id, 'l.score, l.classification, l.quantity, l.product, l.data', db,
+    ) ?? undefined;
     const answers = collectAnswers(questions, fields, before?.data?.qualificacao ?? {});
     const score = Object.keys(answers).length ? scoreOf(answers) : null;
     const finalQty = before?.quantity ?? quantity;

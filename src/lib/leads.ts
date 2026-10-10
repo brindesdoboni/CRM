@@ -1,6 +1,8 @@
 import type { Queryable } from '../db/pool.js';
 import { pool } from '../db/pool.js';
 import { normalizePhone } from './format.js';
+import { permissionsOf } from './permissions.js';
+import type { Role } from './roles.js';
 
 /** Etapas do pedido (CLAUDE.md). Perdido e Pausado são saídas. */
 export const STAGES = [
@@ -92,4 +94,27 @@ export function formatPhone(phone: string | null | undefined): string {
   if (!phone) return '';
   const m = /^(\d{2})(\d{4,5})(\d{4})$/.exec(phone);
   return m ? `(${m[1]}) ${m[2]}-${m[3]}` : phone;
+}
+
+/** Etapas em que o lead ainda está "em aberto": um novo contato entra nele em vez de criar outro. */
+export const OPEN_STAGES = ['novo_lead', 'atendimento', 'aguardando_informacoes', 'orcamento_preparacao', 'orcamento_enviado', 'negociacao'];
+export const DEDUP_DAYS = 30;
+
+/**
+ * Lead em aberto (contato nos últimos 30 dias) em que um novo contato automático do cliente deve entrar.
+ * Leads cadastrados à mão por quem não vê o funil (ex.: Danielson) ficam de fora: o que chega pelo
+ * site/ManyChat não pode aparecer na lista dele.
+ */
+export async function findOpenLead<T extends Record<string, unknown>>(customerId: number, columns: string, db: Queryable = pool): Promise<(T & { id: number }) | null> {
+  const { rows } = await db.query<T & { id: number; creator_role: Role | null; creator_permissions: string[] | null }>(
+    `SELECT l.id, ${columns}, u.role AS creator_role, u.permissions AS creator_permissions
+       FROM leads l LEFT JOIN users u ON u.id = l.created_by
+      WHERE l.customer_id = $1 AND l.stage = ANY($2) AND l.last_contact_at > now() - make_interval(days => $3)
+      ORDER BY l.last_contact_at DESC`,
+    [customerId, OPEN_STAGES, DEDUP_DAYS],
+  );
+  const found = rows.find((r) => !r.creator_role || permissionsOf({ role: r.creator_role, permissions: r.creator_permissions }).includes('funil'));
+  if (!found) return null;
+  const { creator_role: _r, creator_permissions: _p, ...lead } = found;
+  return lead as unknown as T & { id: number };
 }

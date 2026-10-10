@@ -18,6 +18,7 @@ import { geralRouter } from './routes/geral.js';
 import { configuracoesRouter } from './routes/configuracoes.js';
 import { apiRouter } from './routes/api.js';
 import { sdrRouter } from './routes/sdr.js';
+import { formularioRouter } from './routes/formulario.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 
@@ -46,6 +47,8 @@ export function createApp() {
 
   // Entrada automática de leads: antes da sessão (não usa login nem cookie)
   app.use(apiRouter);
+  // Formulário público do site (sem login; consentimento obrigatório)
+  app.use(formularioRouter);
 
   const PgStore = connectPgSimple(session);
   app.use(session({

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Peça seu orçamento · Brindes DoBoni</title>
+  <link rel="stylesheet" href="/static/estilo.css?v=<%= v %>">
+  <link rel="icon" type="image/png" href="/static/favicon.png?v=<%= v %>">
+</head>
+<body class="publico">
+<main class="conteudo formulario-site">
+<div class="cartao">
+  <img class="logo-form" src="/static/logo-160.png?v=<%= v %>" alt="Logo Brindes DoBoni">
+  <% if (enviado) { %>
+    <h1>Recebemos seu pedido!</h1>
+    <p>Obrigado<%= nome ? ', ' + nome : '' %>. Em instantes a Brindes do Boni fala com você pelo WhatsApp.</p>
+  <% } else { %>
+    <h1>Peça seu orçamento</h1>
+    <p class="sutil">Preencha e a gente chama você no WhatsApp.</p>
+    <% if (error) { %><div class="aviso aviso-erro" role="alert"><%= error %></div><% } %>
+    <form method="post" action="/formulario">
+      <label>Nome* <input type="text" name="nome" value="<%= form.nome %>" required maxlength="120" autocomplete="name"></label>
+      <label>WhatsApp (com DDD)* <input type="tel" name="whatsapp" value="<%= form.whatsapp %>" required maxlength="20" placeholder="(11) 98765-4321" autocomplete="tel"></label>
+      <label>E-mail (opcional) <input type="email" name="email" value="<%= form.email %>" maxlength="200" autocomplete="email"></label>
+      <label>Produto de interesse <input type="text" name="produto" value="<%= form.produto %>" maxlength="200" placeholder="Ex.: caneca, garrafa, squeeze"></label>
+      <label>Quantidade <input type="number" name="quantidade" value="<%= form.quantidade %>" min="1" max="999999" inputmode="numeric"></label>
+      <label>Mensagem <textarea name="mensagem" rows="3" maxlength="2000"><%= form.mensagem %></textarea></label>
+      <div class="hp" aria-hidden="true">
+        <label>Deixe este campo vazio <input type="text" name="site" value="" tabindex="-1" autocomplete="off"></label>
+      </div>
+      <label class="consentimento">
+        <input type="checkbox" name="consentimento" value="sim" required <%= form.consentimento ? 'checked' : '' %>>
+        <span><%= consentText %></span>
+      </label>
+      <button type="submit" class="botao">Enviar</button>
+    </form>
+  <% } %>
+</div>
+</main>
+</body>
+</html>

@@ -18,6 +18,9 @@
       <label>Fluxo de recontato no ManyChat (flow_ns) <input type="text" name="flow_recontato" value="<%= settings.manychat_flow_recontato %>" placeholder="content20250101000000_000000">
         <span class="sutil pequeno"><%= manychatKey ? 'Chave da API do ManyChat configurada.' : 'Falta a variável MANYCHAT_API_KEY no Railway; sem ela, no dia do recontato só o comercial é avisado.' %></span>
       </label>
+      <label>Fluxo de boas-vindas do formulário do site (flow_ns) <input type="text" name="flow_boas_vindas" value="<%= settings.manychat_flow_boas_vindas %>" placeholder="content20250101000000_000000">
+        <span class="sutil pequeno">Fluxo do ManyChat com o modelo aprovado do WhatsApp ("Oi {{nome}}, aqui é da Brindes do Boni, vi seu pedido de {{produto}}..."). O CRM preenche o campo do contato <code>produto</code>.</span>
+      </label>
       <button class="botao" type="submit">Salvar regras</button>
     </form>
   </div>
@@ -32,6 +35,16 @@
       <li>Recontato pedido: envie <code>recontato_dias</code> (ou <code>recontato_data</code>) e <code>recontato_consentimento</code> com o que o cliente disse. Para sair: <code>sair = sim</code>.</li>
     </ol>
   </div>
+</div>
+
+<div class="cartao">
+  <h2>Formulário do site</h2>
+  <p class="pequeno">Quem preenche precisa marcar "<%= consentText %>" para enviar. O lead entra com origem "Site Brindes DoBoni" e o SDR manda a boas-vindas no WhatsApp. Se o envio falhar, o comercial recebe um aviso no sininho.</p>
+  <div class="linha">
+    <label>Link do formulário (para um botão no site) <input type="text" readonly value="<%= baseUrl %>/formulario" data-copiar></label>
+  </div>
+  <label>Código para colocar o formulário dentro de uma página do site <textarea readonly rows="2" data-copiar>&lt;iframe src="<%= baseUrl %>/formulario" style="width:100%;max-width:560px;height:900px;border:0" title="Peça seu orçamento"&gt;&lt;/iframe&gt;</textarea></label>
+  <p><a href="/formulario" target="_blank" rel="noopener">Abrir o formulário</a></p>
 </div>
 
 <div class="cartao">

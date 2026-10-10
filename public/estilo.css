@@ -238,3 +238,14 @@ h2.secao { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--b
 .opcoes-frete { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
 .opcoes-frete button { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: .4rem .7rem; cursor: pointer; text-align: left; font: inherit; }
 .opcoes-frete button:hover { border-color: var(--dourado); background: var(--dourado-claro); }
+
+/* Formulário público do site (pode ficar dentro do site num iframe) */
+body.publico { background: var(--fundo); }
+.formulario-site { max-width: 520px; }
+.formulario-site .cartao { border-top: 4px solid var(--vinho); }
+.logo-form { width: 72px; height: 72px; display: block; margin: 0 auto .5rem; }
+.formulario-site h1 { text-align: center; }
+.formulario-site > .cartao > p { text-align: center; }
+.consentimento { display: flex; gap: .6rem; align-items: flex-start; font-weight: 500; margin: .4rem 0 1rem; }
+.consentimento input { width: auto; margin-top: .25rem; flex: none; }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
