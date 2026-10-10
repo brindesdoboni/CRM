@@ -16,7 +16,7 @@ producaoRouter.get('/producao', async (req, res) => {
             s.due_date < current_date AS atrasada, s.due_date = current_date AS vence_hoje,
             (SELECT count(*)::int FROM sale_checklist k WHERE k.sale_id = s.id) AS feitos
        FROM sales s
-      WHERE ${concluidas ? `s.status = 'concluida'` : `s.status <> 'concluida'`}
+      WHERE s.customer_approved AND ${concluidas ? `s.status = 'concluida'` : `s.status <> 'concluida'`}
       ORDER BY ${concluidas ? 's.completed_at DESC' : 's.due_date, s.id'}
       LIMIT 300`,
   );
@@ -28,16 +28,19 @@ producaoRouter.get('/producao', async (req, res) => {
   res.render('producao/lista', { title: 'Produção', sales, concluidas, resumo, SALE_STATUS_LABELS });
 });
 
+/** A produção só enxerga vendas aprovadas pelo cliente, e nunca frete, pagamento ou custos. */
 async function loadSale(req: Request) {
   const id = Number(req.params.id);
   if (!Number.isInteger(id)) return null;
   const { rows } = await pool.query(
-    `SELECT s.*, o.name AS origin, f.mime AS art_mime, s.due_date < current_date AS atrasada, s.due_date = current_date AS vence_hoje,
+    `SELECT s.id, s.code, s.customer_name, s.lead_id, s.origin_id, s.product, s.product_code, s.color, s.quantity, s.font, s.names,
+            s.art_file_id, s.notes, s.due_date, s.status, s.pause_reason, s.weight_kg, s.height_cm, s.width_cm, s.length_cm,
+            s.completed_at, s.completed_by, s.created_at, s.updated_at, o.name AS origin, f.mime AS art_mime, s.due_date < current_date AS atrasada, s.due_date = current_date AS vence_hoje,
             cb.name AS completed_by_name
        FROM sales s JOIN origins o ON o.id = s.origin_id
        LEFT JOIN files f ON f.id = s.art_file_id
        LEFT JOIN users cb ON cb.id = s.completed_by
-      WHERE s.id = $1`,
+      WHERE s.id = $1 AND s.customer_approved`,
     [id],
   );
   return rows[0] ?? null;
@@ -55,7 +58,7 @@ producaoRouter.get('/producao/:id', async (req, res) => {
     ),
     pool.query(
       `SELECT e.created_at, e.description, u.name AS author FROM events e LEFT JOIN users u ON u.id = e.user_id
-        WHERE e.entity_type = 'venda' AND e.entity_id = $1 ORDER BY e.created_at DESC LIMIT 50`,
+        WHERE e.entity_type = 'venda' AND e.entity_id = $1 AND e.action NOT IN ('comercial', 'pdf') ORDER BY e.created_at DESC LIMIT 50`,
       [String(sale.id)],
     ),
   ]);

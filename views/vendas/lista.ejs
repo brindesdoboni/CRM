@@ -1,7 +1,7 @@
 <%- include('../partials/topo') %>
 <div class="cabecalho">
   <h1>Vendas</h1>
-  <a class="botao" href="/pedidos/nova">+ Nova venda para produção</a>
+  <a class="botao" href="/pedidos/nova">+ Nova venda</a>
 </div>
 <p class="abas">
   <a href="/pedidos" class="<%= situacao !== 'concluidas' ? 'ativo' : '' %>">Em aberto</a>
@@ -12,17 +12,18 @@
     <p class="sutil">Nenhuma venda aqui.</p>
   <% } else { %>
   <table class="tabela">
-    <thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Cor</th><th>Qtd</th><th>Prazo</th><th>Situação</th></tr></thead>
+    <thead><tr><th>Código</th><th>Cliente</th><th>Produto</th><th>Cor</th><th>Qtd</th><th>Total</th><th>Prazo</th><th>Situação</th></tr></thead>
     <tbody>
     <% sales.forEach(function (s) { %>
-      <tr class="<%= s.status !== 'concluida' && s.atrasada ? 'atrasada' : '' %>">
+      <tr class="<%= s.status !== 'concluida' && s.customer_approved && s.atrasada ? 'atrasada' : '' %>">
         <td><a href="/pedidos/<%= s.id %>"><strong><%= s.code %></strong></a></td>
         <td><%= s.customer_name %><br><span class="sutil pequeno"><%= s.origin %></span></td>
         <td><%= s.product %></td>
         <td><%= s.color || '—' %></td>
         <td><%= s.quantity %></td>
+        <td class="nowrap"><%= s.total === null ? '—' : formatMoney(s.total) %><br><span class="sutil pequeno"><%= PAYMENT_STATUS_LABELS[s.payment_status] %></span></td>
         <td class="nowrap"><%= formatDate(s.due_date) %></td>
-        <td><span class="selo status-<%= s.status %>"><%= SALE_STATUS_LABELS[s.status] %></span></td>
+        <td><% if (!s.customer_approved) { %><span class="selo status-aprovacao">Aguardando aprovação do cliente</span><% } else { %><span class="selo status-<%= s.status %>"><%= SALE_STATUS_LABELS[s.status] %></span><% } %></td>
       </tr>
     <% }) %>
     </tbody>

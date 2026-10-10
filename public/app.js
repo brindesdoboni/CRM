@@ -87,3 +87,102 @@ document.addEventListener('DOMContentLoaded', function () {
     i.addEventListener('focus', function () { i.select(); });
   });
 });
+
+// Venda: total e parcela ao vivo (o servidor recalcula ao salvar) e cotação na SuperFrete.
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.querySelector('form[data-venda]');
+  if (!form) return;
+  var campo = function (n) { return form.querySelector('[name=' + n + ']'); };
+  var reais = function (v) {
+    v = String(v || '').trim().replace(/^R\$\s*/i, '');
+    if (!v) return null;
+    if (v.indexOf(',') !== -1 || /^\d{1,3}(\.\d{3})+$/.test(v)) v = v.replace(/\./g, '').replace(',', '.');
+    var n = Number(v);
+    return isFinite(n) && n >= 0 ? Math.round(n * 100) : NaN;
+  };
+  var fmt = function (c) { return (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); };
+  var r = function (k) { return form.querySelector('[data-r=' + k + ']'); };
+  var margem = form.querySelector('[data-margem-frete]');
+
+  function calcular() {
+    var qtd = parseInt(campo('quantidade').value, 10) || 0;
+    var unit = reais(campo('valor_unitario').value);
+    var frete = reais(campo('frete_valor').value) || 0;
+    var desc = reais(campo('desconto').value) || 0;
+    var entrada = reais(campo('entrada').value) || 0;
+    var n = Math.max(1, parseInt(campo('parcelas').value, 10) || 1);
+    var semJuros = campo('sem_juros').value !== 'nao' || n === 1;
+    var parcelaCampo = form.querySelector('[data-valor-parcela]');
+    parcelaCampo.readOnly = semJuros;
+    if (margem) {
+      var custo = reais(campo('frete_custo').value);
+      var cobrado = reais(campo('frete_valor').value);
+      margem.textContent = custo === null || cobrado === null || isNaN(custo) || isNaN(cobrado) ? '—' : fmt(cobrado - custo);
+    }
+    r('frete').textContent = fmt(frete || 0);
+    r('desconto').textContent = fmt(desc || 0);
+    r('obs').textContent = '';
+    if (unit === null || isNaN(unit) || [frete, desc, entrada].some(isNaN)) {
+      ['produtos', 'total', 'parcela'].forEach(function (k) { r(k).textContent = '—'; });
+      if (unit === null) r('obs').textContent = 'Informe o valor unitário para calcular o total.';
+      return;
+    }
+    var produtos = unit * qtd;
+    var total = produtos + frete - desc;
+    r('produtos').textContent = fmt(produtos);
+    r('total').textContent = fmt(total);
+    if (total < 0) { r('obs').textContent = 'O desconto passou de produtos + frete.'; return; }
+    if (semJuros) {
+      var p = Math.round((total - entrada) / n);
+      parcelaCampo.value = (p / 100).toFixed(2).replace('.', ',');
+      r('parcela').textContent = n === 1 ? fmt(p) + ' (à vista)' : n + '× de ' + fmt(p) + ' sem juros';
+    } else {
+      var pj = reais(parcelaCampo.value);
+      r('parcela').textContent = pj === null || isNaN(pj) ? 'digite o valor da parcela' : n + '× de ' + fmt(pj) + ' com juros';
+      if (pj) r('obs').textContent = 'Total pago com juros: ' + fmt(entrada + pj * n) + '.';
+    }
+    if (entrada) r('obs').textContent = 'Entrada de ' + fmt(entrada) + '. ' + r('obs').textContent;
+  }
+  form.querySelectorAll('[data-calc]').forEach(function (i) {
+    i.addEventListener('input', calcular);
+    i.addEventListener('change', calcular);
+  });
+  calcular();
+
+  var cotar = form.querySelector('[data-cotar]');
+  if (!cotar) return;
+  var msg = form.querySelector('[data-cot-msg]');
+  var opcoes = form.querySelector('[data-cot-opcoes]');
+  var aviso = function (t) { msg.textContent = t; msg.hidden = !t; };
+  cotar.addEventListener('click', function () {
+    aviso('Cotando…');
+    opcoes.innerHTML = '';
+    var corpo = { cep: form.querySelector('[data-frete-cep]').value };
+    form.querySelectorAll('[data-cot]').forEach(function (i) { corpo[i.dataset.cot] = i.value; });
+    fetch('/pedidos/frete/cotar', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': campo('_csrf').value },
+      body: JSON.stringify(corpo),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (d) {
+        if (d.erro) { aviso(d.erro); return; }
+        aviso('Escolha uma opção para preencher o frete:');
+        d.opcoes.forEach(function (o) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = o.servico + ' · ' + fmt(Math.round(o.valor * 100)) + (o.prazo ? ' · ' + o.prazo + ' dias úteis' : '');
+          b.addEventListener('click', function () {
+            form.querySelector('[data-frete-servico]').value = o.servico;
+            form.querySelector('[data-frete-valor]').value = o.valor.toFixed(2).replace('.', ',');
+            if (o.prazo) form.querySelector('[data-frete-prazo]').value = o.prazo;
+            if (margem && !campo('frete_custo').value) campo('frete_custo').value = o.valor.toFixed(2).replace('.', ',');
+            aviso(o.servico + ' escolhido.');
+            calcular();
+          });
+          opcoes.appendChild(b);
+        });
+      })
+      .catch(function () { aviso('Não foi possível cotar agora. Digite o valor do frete.'); });
+  });
+});

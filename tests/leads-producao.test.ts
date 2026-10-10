@@ -133,7 +133,7 @@ describe('venda → produção (Jô)', () => {
     const res = await laura.agent.post('/pedidos')
       .field('_csrf', laura.csrf).field('cliente', 'Maria').field('telefone', '11987654321').field('origem', String(origemShopee))
       .field('produto', 'Caneca').field('codigo_produto', 'CAN-01').field('cor', 'Preta').field('quantidade', '3')
-      .field('fonte', 'Great Vibes').field('nomes', 'Ana\nJosé, o "Zé"\n\nÇíntia').field('prazo', '2026-10-16')
+      .field('fonte', 'Great Vibes').field('nomes', 'Ana\nJosé, o "Zé"\n\nÇíntia').field('prazo', '2026-10-16').field('aprovado', 'sim')
       .attach('arquivo', PNG, 'arte.png');
     expect(res.status).toBe(302);
     const { rows } = await pool.query('SELECT id, code, status FROM sales');
@@ -177,7 +177,7 @@ describe('venda → produção (Jô)', () => {
   });
 
   it('"Tenho um problema" pausa e avisa o comercial', async () => {
-    await laura.agent.post('/pedidos').type('form').send({ _csrf: laura.csrf, cliente: 'Pedro', origem: origemInstagram, produto: 'Chaveiro', quantidade: '50', prazo: '2026-10-01' });
+    await laura.agent.post('/pedidos').type('form').send({ _csrf: laura.csrf, cliente: 'Pedro', origem: origemInstagram, produto: 'Chaveiro', quantidade: '50', prazo: '2026-10-01', aprovado: 'sim' });
     const { rows } = await pool.query(`SELECT id FROM sales WHERE customer_name = 'Pedro'`);
     const lista = await jo.agent.get('/producao');
     expect(lista.text).toContain('ATRASADA');

@@ -1,14 +1,19 @@
 <%- include('../partials/topo') %>
 <p><a href="/pedidos">← Vendas</a></p>
-<h1><%= editing ? 'Venda ' + editing.code : 'Nova venda para produção' %></h1>
+<div class="cabecalho">
+  <h1><%= editing ? 'Venda ' + editing.code : 'Nova venda' %></h1>
+  <% if (editing) { %><a class="botao" href="/pedidos/<%= editing.id %>/pdf">Baixar PDF</a><% } %>
+</div>
 <% if (editing && editing.status === 'concluida') { %><div class="aviso aviso-sucesso">Produção concluída. Esta venda não pode mais ser alterada.</div><% } %>
 <% if (editing && editing.status === 'pausada') { %><div class="aviso aviso-erro"><strong>Produção pausada:</strong> <%= editing.pause_reason %></div><% } %>
+<% if (editing && !editing.customer_approved) { %><div class="aviso aviso-atencao">Aguardando aprovação do cliente: esta venda ainda <strong>não aparece para a produção</strong>. Baixe o PDF, mande ao cliente e, quando ele aprovar, marque "Pedido aprovado pelo cliente: Sim".</div><% } %>
 <div class="cartao">
   <% if (error) { %><div class="aviso aviso-erro"><%= error %></div><% } %>
-  <form method="post" action="<%= editing ? '/pedidos/' + editing.id : '/pedidos' %>" enctype="multipart/form-data">
+  <form method="post" action="<%= editing ? '/pedidos/' + editing.id : '/pedidos' %>" enctype="multipart/form-data" data-venda>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <input type="hidden" name="lead" value="<%= form.leadId %>">
-    <fieldset <%= editing && editing.status === 'concluida' ? 'disabled' : '' %>>
+    <fieldset <%= editing && editing.status === 'concluida' ? 'disabled' : '' %> class="sem-borda">
+    <h2>Pedido</h2>
     <div class="linha">
       <label class="curto">Código da venda <input type="text" name="codigo" value="<%= form.code %>" placeholder="automático" autocomplete="off"></label>
       <label>Cliente * <input type="text" name="cliente" value="<%= form.customerName %>" required autocomplete="off"></label>
@@ -26,7 +31,7 @@
     </div>
     <div class="linha">
       <label>Cor <input type="text" name="cor" value="<%= form.color %>" autocomplete="off"></label>
-      <label class="curto">Quantidade * <input type="number" name="quantidade" value="<%= form.quantity %>" min="1" step="1" required></label>
+      <label class="curto">Quantidade * <input type="number" name="quantidade" value="<%= form.quantity %>" min="1" step="1" required data-calc></label>
       <label class="curto">Prazo da produção * <input type="date" name="prazo" value="<%= form.dueDate %>" required></label>
     </div>
     <div class="linha">
@@ -40,7 +45,92 @@
       </div>
     </div>
     <label>Observações para a produção <textarea name="observacoes" rows="3"><%= form.notes %></textarea></label>
-    <button type="submit" class="botao"><%= editing ? 'Salvar' : 'Mandar para a produção' %></button>
+
+    <h2 class="secao">Frete</h2>
+    <div class="linha">
+      <label class="curto">CEP de destino <input type="text" name="frete_cep" value="<%= form.shippingCep %>" inputmode="numeric" autocomplete="off" placeholder="00000-000" data-frete-cep></label>
+      <label>Transportadora / serviço <input type="text" name="frete_servico" value="<%= form.shippingService %>" autocomplete="off" placeholder="Ex.: Correios PAC" data-frete-servico></label>
+      <label class="curto">Frete cobrado do cliente (R$) <input type="text" name="frete_valor" value="<%= form.shippingPrice %>" inputmode="decimal" autocomplete="off" data-calc data-frete-valor></label>
+      <label class="curto">Prazo de entrega (dias úteis) <input type="number" name="frete_prazo" value="<%= form.shippingDays %>" min="0" step="1" data-frete-prazo></label>
+    </div>
+    <details class="cotacao" data-cotacao>
+      <summary>Cotar na SuperFrete</summary>
+      <% if (!superfrete) { %><p class="sutil pequeno">A cotação automática ainda não está ligada (falta o token da SuperFrete no Railway). Por enquanto, digite o valor do frete.</p><% } %>
+      <div class="linha">
+        <label class="curto">Peso (kg) <input type="text" inputmode="decimal" data-cot="peso" placeholder="0,5"></label>
+        <label class="curto">Altura (cm) <input type="text" inputmode="decimal" data-cot="altura" placeholder="10"></label>
+        <label class="curto">Largura (cm) <input type="text" inputmode="decimal" data-cot="largura" placeholder="15"></label>
+        <label class="curto">Comprimento (cm) <input type="text" inputmode="decimal" data-cot="comprimento" placeholder="20"></label>
+      </div>
+      <button type="button" class="botao secundario pequeno" data-cotar>Cotar</button>
+      <p class="pequeno" data-cot-msg hidden></p>
+      <div class="opcoes-frete" data-cot-opcoes></div>
+    </details>
+    <div class="linha">
+      <label>Código de rastreio (opcional, preenchido depois) <input type="text" name="rastreio" value="<%= form.trackingCode %>" autocomplete="off"></label>
+      <% if (seesCost) { %>
+      <label class="curto interno">Custo real do frete (R$) <span class="selo selo-admin">só Admin</span>
+        <input type="text" name="frete_custo" value="<%= form.shippingCost %>" inputmode="decimal" autocomplete="off" data-calc data-frete-custo>
+      </label>
+      <div class="curto interno"><span class="rotulo">Margem do frete</span><strong data-margem-frete>—</strong></div>
+      <% } %>
+    </div>
+
+    <h2 class="secao">Pagamento</h2>
+    <div class="linha">
+      <label class="curto">Valor unitário (R$) <input type="text" name="valor_unitario" value="<%= form.unitPrice %>" inputmode="decimal" autocomplete="off" data-calc></label>
+      <label class="curto">Desconto (R$) <input type="text" name="desconto" value="<%= form.discount %>" inputmode="decimal" autocomplete="off" data-calc></label>
+      <label>Forma de pagamento
+        <select name="forma_pagamento" data-calc>
+          <option value="">Escolha…</option>
+          <% Object.keys(PAYMENT_METHODS).forEach(function (k) { %><option value="<%= k %>" <%= form.paymentMethod === k ? 'selected' : '' %>><%= PAYMENT_METHODS[k] %></option><% }) %>
+        </select>
+      </label>
+      <label class="curto">Status
+        <select name="status_pagamento">
+          <% Object.keys(PAYMENT_STATUS_LABELS).forEach(function (k) { %><option value="<%= k %>" <%= form.paymentStatus === k ? 'selected' : '' %>><%= PAYMENT_STATUS_LABELS[k] %></option><% }) %>
+        </select>
+      </label>
+    </div>
+    <div class="linha">
+      <label class="curto">Entrada (R$, se houver) <input type="text" name="entrada" value="<%= form.downPayment %>" inputmode="decimal" autocomplete="off" data-calc></label>
+      <label class="curto">Parcelas <input type="number" name="parcelas" value="<%= form.installments %>" min="1" max="24" step="1" data-calc></label>
+      <label class="curto">Sem juros?
+        <select name="sem_juros" data-calc>
+          <option value="sim" <%= form.interestFree !== 'nao' ? 'selected' : '' %>>Sim</option>
+          <option value="nao" <%= form.interestFree === 'nao' ? 'selected' : '' %>>Não</option>
+        </select>
+      </label>
+      <label class="curto">Valor da parcela (R$) <input type="text" name="valor_parcela" value="<%= form.installmentValue %>" inputmode="decimal" autocomplete="off" data-calc data-valor-parcela></label>
+    </div>
+    <div class="resumo-valores" data-resumo>
+      <div><span>Produtos</span><strong data-r="produtos">—</strong></div>
+      <div><span>+ Frete</span><strong data-r="frete">—</strong></div>
+      <div><span>− Desconto</span><strong data-r="desconto">—</strong></div>
+      <div class="total"><span>Valor total</span><strong data-r="total">—</strong></div>
+      <div class="total"><span>Cada parcela</span><strong data-r="parcela">—</strong></div>
+    </div>
+    <p class="sutil pequeno" data-r="obs"></p>
+
+    <h2 class="secao">Aprovação do cliente</h2>
+    <div class="linha">
+      <label class="curto">Pedido aprovado pelo cliente
+        <select name="aprovado">
+          <option value="nao" <%= form.approved !== 'sim' ? 'selected' : '' %>>Não</option>
+          <option value="sim" <%= form.approved === 'sim' ? 'selected' : '' %>>Sim</option>
+        </select>
+      </label>
+      <div>
+        <% if (editing && editing.customer_approved) { %>
+          <span class="rotulo">Registrado</span>
+          <% if (editing.approved_by_name) { %><%= formatDateTime(editing.approved_at) %> por <%= editing.approved_by_name %><% } else { %>Já estava na produção antes desta atualização<% } %>
+        <% } else { %>
+          <span class="sutil pequeno">Só depois de "Sim" a venda vai para a produção da Jô.</span>
+        <% } %>
+      </div>
+    </div>
+
+    <button type="submit" class="botao"><%= editing ? 'Salvar' : 'Salvar venda' %></button>
     </fieldset>
   </form>
 </div>

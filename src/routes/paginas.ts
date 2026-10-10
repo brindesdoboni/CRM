@@ -37,7 +37,7 @@ paginasRouter.get('/inicio', requirePermission('inicio'), async (_req, res) => {
               count(*) FILTER (WHERE status <> 'concluida' AND due_date < current_date)::int AS atrasadas,
               count(*) FILTER (WHERE status <> 'concluida' AND due_date = current_date)::int AS hoje,
               count(*) FILTER (WHERE status = 'pausada')::int AS pausadas
-         FROM sales`,
+         FROM sales WHERE customer_approved`,
     ),
     pool.query(
       `SELECT e.created_at, e.description, u.name AS author
