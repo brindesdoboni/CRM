@@ -3,6 +3,8 @@ import { pool } from '../db/pool.js';
 import { recordEvent } from '../lib/events.js';
 import { listOrigins } from '../lib/leads.js';
 import { INTEGRATION_CHANNELS, isIntegrationChannel, newToken } from '../lib/integrations.js';
+import { getSettings, setSetting, type SettingKey } from '../lib/settings.js';
+import { parseCep } from '../lib/sales.js';
 import { flash, requirePermission } from '../middleware.js';
 
 export const configuracoesRouter = Router();
@@ -20,7 +22,29 @@ async function listIntegrations() {
 configuracoesRouter.get('/configuracoes', async (_req, res) => {
   res.render('configuracoes', {
     title: 'Cadastros e configurações', origins: await listOrigins(false), integrations: await listIntegrations(), INTEGRATION_CHANNELS,
+    settings: await getSettings(),
   });
+});
+
+/** Dados da empresa que saem no PDF "Resumo do pedido" e CEP de origem da cotação de frete. */
+const EMPRESA_FIELDS: Record<string, SettingKey> = {
+  empresa_nome: 'empresa_nome', empresa_cnpj: 'empresa_cnpj', empresa_telefone: 'empresa_telefone', empresa_email: 'empresa_email',
+  empresa_site: 'empresa_site', empresa_endereco: 'empresa_endereco',
+};
+
+configuracoesRouter.post('/configuracoes/empresa', async (req, res) => {
+  const cep = parseCep(req.body.frete_cep_origem);
+  if (cep === '') {
+    flash(req, 'erro', 'CEP de origem inválido: use 8 números.');
+    return res.redirect('/configuracoes');
+  }
+  for (const [field, key] of Object.entries(EMPRESA_FIELDS)) {
+    await setSetting(key, String(req.body[field] ?? '').trim().slice(0, 200));
+  }
+  await setSetting('frete_cep_origem', cep ?? '');
+  await recordEvent({ userId: req.user!.id, entityType: 'configuracao', action: 'empresa', description: 'Alterou os dados da empresa e o CEP de origem do frete', ip: req.ip });
+  flash(req, 'sucesso', 'Dados da empresa salvos.');
+  res.redirect('/configuracoes');
 });
 
 function apiUrl(req: import('express').Request): string {

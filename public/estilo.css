@@ -220,3 +220,21 @@ h1 { color: var(--vinho); }
 .cartao h2::before { content: ""; display: inline-block; width: 4px; height: .95em; background: var(--dourado); border-radius: 2px; margin-right: .5rem; vertical-align: -1px; }
 .numero strong { color: var(--vinho); }
 .sino .contador { background: var(--vinho); }
+
+/* Venda: frete, pagamento e aprovação */
+fieldset.sem-borda { border: 0; padding: 0; margin: 0; }
+h2.secao { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--borda); color: var(--vinho); }
+.rotulo { display: block; color: var(--sutil); font-size: .9rem; margin-bottom: .3rem; }
+.interno { background: #fbf6f6; border-radius: 8px; padding: .4rem .6rem; }
+.status-aprovacao { background: #fff4e5; color: #9a5b00; }
+.resumo-valores { display: flex; flex-wrap: wrap; gap: .5rem; margin: .25rem 0 .5rem; }
+.resumo-valores > div { flex: 1 1 130px; background: var(--fundo); border-radius: 8px; padding: .5rem .75rem; }
+.resumo-valores span { display: block; color: var(--sutil); font-size: .85rem; }
+.resumo-valores strong { font-size: 1.1rem; }
+.resumo-valores .total { background: var(--dourado-claro); }
+.resumo-valores .total strong { color: var(--vinho); font-size: 1.25rem; }
+.cotacao { margin: 0 0 1rem; padding: .5rem .75rem; border: 1px dashed var(--borda); border-radius: 8px; }
+.cotacao summary { cursor: pointer; font-weight: 600; color: var(--vinho); }
+.opcoes-frete { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.opcoes-frete button { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: .4rem .7rem; cursor: pointer; text-align: left; font: inherit; }
+.opcoes-frete button:hover { border-color: var(--dourado); background: var(--dourado-claro); }

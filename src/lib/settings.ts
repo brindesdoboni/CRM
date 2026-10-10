@@ -2,7 +2,8 @@ import type { Queryable } from '../db/pool.js';
 import { pool } from '../db/pool.js';
 
 export type SettingKey =
-  | 'sdr_nota_quente' | 'sdr_nota_morno' | 'limite_atacado' | 'whatsapp_comercial' | 'sdr_mensagem_varejo' | 'manychat_flow_recontato';
+  | 'sdr_nota_quente' | 'sdr_nota_morno' | 'limite_atacado' | 'whatsapp_comercial' | 'sdr_mensagem_varejo' | 'manychat_flow_recontato'
+  | 'frete_cep_origem' | 'empresa_nome' | 'empresa_cnpj' | 'empresa_telefone' | 'empresa_email' | 'empresa_site' | 'empresa_endereco';
 
 export async function getSettings(db: Queryable = pool): Promise<Record<SettingKey, string>> {
   const { rows } = await db.query<{ key: SettingKey; value: string }>('SELECT key, value FROM settings');

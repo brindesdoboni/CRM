@@ -74,6 +74,27 @@
     </form>
   </div>
   <div class="cartao">
+    <h2>Dados da empresa (PDF) e frete</h2>
+    <p class="sutil pequeno">Aparecem no topo do PDF "Resumo do pedido". O CEP de origem é usado na cotação da SuperFrete.</p>
+    <form method="post" action="/configuracoes/empresa">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="linha">
+        <label>Nome <input type="text" name="empresa_nome" value="<%= settings.empresa_nome %>"></label>
+        <label>CNPJ <input type="text" name="empresa_cnpj" value="<%= settings.empresa_cnpj %>"></label>
+      </div>
+      <div class="linha">
+        <label>Telefone / WhatsApp <input type="text" name="empresa_telefone" value="<%= settings.empresa_telefone %>"></label>
+        <label>E-mail <input type="text" name="empresa_email" value="<%= settings.empresa_email %>"></label>
+      </div>
+      <div class="linha">
+        <label>Site <input type="text" name="empresa_site" value="<%= settings.empresa_site %>"></label>
+        <label class="curto">CEP de origem do frete <input type="text" name="frete_cep_origem" value="<%= settings.frete_cep_origem %>" inputmode="numeric"></label>
+      </div>
+      <label>Endereço <input type="text" name="empresa_endereco" value="<%= settings.empresa_endereco %>"></label>
+      <button class="botao pequeno" type="submit">Salvar</button>
+    </form>
+  </div>
+  <div class="cartao">
     <h2>Em breve</h2>
     <p class="sutil">Produtos, formas de pagamento, motivos de perda, regras (atacado, prazos, validade), e textos prontos.</p>
   </div>
